@@ -5,7 +5,14 @@ import numpy as np
 def noise_Z(minibatch_size):
     pass
 
+def generator_encoder():
+    pass
+
+def generator_decoder():
+    pass
+
 def generator(z):
+    # use generator_encoder and generator_decoder calls
     pass
 
 def discriminator(x):
