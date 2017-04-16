@@ -22,7 +22,7 @@ def generator(z):
 
 
 def discriminator(x):
-    pass
+    return discriminator.conv_net(x)
 
 
 def next_data_batch(minibatch_size):
