@@ -1,8 +1,8 @@
 import tensorflow as tf
 import numpy as np
 
-# Generate a noise sample
 
+# Generate a noise sample
 
 def noise_Z(minibatch_size):
     pass
@@ -28,13 +28,17 @@ def discriminator(x):
 def next_data_batch(minibatch_size):
     pass
 
+# --> Add conditional stuff
+G_sample = generator(Z)
+D_real = discriminator(X)
+D_fake = discriminator(G_sample)
 
-D_loss = 0
-G_loss = 0
+D_loss = -tf.reduce_mean(tf.log(D_real) + tf.log(1. - D_fake))
+G_loss = -tf.reduce_mean(tf.log(D_fake)) + tf.reduce_mean(X - D_fake)
 
 # Apply an optimizer here to minimize the above loss functions
-D_solver = 0
-G_solver = 0
+D_solver = tf.train.AdamOptimizer().minimize(D_loss) # --> add var_list
+G_solver = tf.train.AdamOptimizer().minimize(G_loss) # --> add var_list
 
 sess = tf.Session()
 sess.run(tf.global_variables_initializer())
