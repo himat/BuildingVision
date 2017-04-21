@@ -1,24 +1,11 @@
 import tensorflow as tf
 import numpy as np
 
-# Generate a noise sample
+from generator import u_net
 
 
-def noise_Z(minibatch_size):
-    pass
-
-
-def generator_encoder():
-    pass
-
-
-def generator_decoder():
-    pass
-
-
-def generator(z):
-    # use generator_encoder and generator_decoder calls
-    pass
+def generator(x):
+    return u_net(x)
 
 
 def discriminator(x):
