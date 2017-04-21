@@ -44,8 +44,8 @@ D_W, D_b = conv_weights()
 D_theta.extend(D_W.values())
 D_theta.extend(D_b.values())
 
-D_real = discriminator(y, X, (D_W, D_b))
-D_fake = discriminator(y, G_sample, (D_W, D_b))
+D_real, D_real_res = discriminator(y, X, (D_W, D_b))
+D_fake, D_fake_res = discriminator(y, G_sample, (D_W, D_b))
 
 D_loss = -tf.reduce_mean(tf.log(D_real) + tf.log(1. - D_fake))
 G_loss = -tf.reduce_mean(tf.log(D_fake)) + tf.reduce_mean(X - D_fake)
