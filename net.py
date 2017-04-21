@@ -84,13 +84,14 @@ D_loss = D_loss_real + D_loss_fake
 G_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=D_logit_fake, 
     labels=tf.ones_like(D_logit_fake))) + tf.reduce_mean(X_sketch - D_fake)
 
-# Apply an optimizer here to minimize the above loss functions
-D_solver = tf.train.AdamOptimizer().minimize(D_loss, var_list = D_theta)
-G_solver = tf.train.AdamOptimizer().minimize(G_loss, var_list = G_theta)
 
 (D_W, D_b) = conv_weights()
 theta_D = list(D_W.values) + list(D_b.values)
 theta_G = [] ### FILL THIS IN
+
+# Apply an optimizer here to minimize the above loss functions
+D_solver = tf.train.AdamOptimizer().minimize(D_loss, var_list = theta_D)
+G_solver = tf.train.AdamOptimizer().minimize(G_loss, var_list = theta_G)
 
 
 with tf.Session() as sess:
