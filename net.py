@@ -3,15 +3,18 @@ import numpy as np
 
 
 from generator import u_net
+from discriminator import conv_net
 
-# Generate a noise sample
 
 def generator(x):
     return u_net(x)
 
 
-def discriminator(x):
-    return discriminator.conv_net(x)
+def discriminator(x, g):
+    x = tf.reshape(x, [-1, 128, 128, 1])
+    g = tf.reshape(g, [-1, 128, 128, 3])
+    y = tf.concat([x, g], 3)
+    return conv_net(y)
 
 
 def next_data_batch(minibatch_size):
