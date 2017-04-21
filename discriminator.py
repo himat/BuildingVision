@@ -38,7 +38,7 @@ def denseW(input, output):
     return tf.Variable(tf.random_normal([input, output]))
 
 
-def conv_net(x):
+def conv_weights():
     weights = {
         'c1': filters(4, 64),
         'c2': filters(64, 128),
@@ -58,7 +58,11 @@ def conv_net(x):
         'c6': bias(512),
         'c7': bias(1),
     }
+    return (weights, biases)
 
+
+def conv_net(x, vars):
+    weights, biases = vars
     x = tf.reshape(x, shape=[-1, 128, 128, 4])
 
     c1 = conv(x, weights['c1'], biases['c1'], strides=2)
@@ -76,7 +80,9 @@ def conv_net(x):
     c7 = conv(c6, weights['c7'], biases['c7'], strides=2)
 
     res = tf.reshape(c7, [-1, 1])
-    return tf.nn.sigmoid(res)
+    vars = list(weights.values())
+    vars.extend(biases.values())
+    return (tf.nn.sigmoid(res), vars)
 
 
 def test_conv_net():

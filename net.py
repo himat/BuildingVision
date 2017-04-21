@@ -4,7 +4,22 @@ import os
 import matplotlib.pyplot as plt
 
 from generator import u_net
-from discriminator import conv_net
+from discriminator import conv_net, conv_weights
+
+minib_size = 128
+X_dim = 128*128
+y_dim = 128*128
+Z_dim = 100
+
+X = tf.placeholder(tf.float32, shape=[None, X_dim])
+y = tf.placeholder(tf.float32, shape=[None, y_dim])
+Z = tf.placeholder(tf.float32, shape=[None, Z_dim])
+
+""" Discriminator """
+D_theta = []
+
+""" Generator """
+G_theta = []
 
 epochs = 10
 minib_size = 14
@@ -19,11 +34,11 @@ test_path = "data/**"
 def generator(x):
     return u_net(x)
 
-def discriminator(x, g):
+def discriminator(x, g, W, b):
     x = tf.reshape(x, [-1, 128, 128, 1])
     g = tf.reshape(g, [-1, 128, 128, 3])
     y = tf.concat([x, g], 3)
-    return conv_net(y)
+    return conv_net(y, (W, b))
 
 def next_data_batch(minibatch_size):
     pass
@@ -65,15 +80,20 @@ X_ground_truth = tf.placeholder(tf.float32, shape=[None, IMAGE_SIZE*input_nc], n
 
 # --> Add conditional stuff
 G_sample = generator(X_sketch) # add conditional parameter
-D_real = discriminator(X_ground_truth, X_sketch)
-D_fake = discriminator(X_ground_truth, G_sample)
+
+D_W, D_b = conv_weights()
+D_theta.extend(D_W.values())
+D_theta.extend(D_b.values())
+
+D_real = discriminator(X_ground_truth, X_sketch, (D_W, D_b))
+D_fake = discriminator(X_ground_truth, G_sample, (D_W, D_b))
 
 D_loss = -tf.reduce_mean(tf.log(D_real) + tf.log(1. - D_fake))
 G_loss = -tf.reduce_mean(tf.log(D_fake)) + tf.reduce_mean(X_sketch - D_fake)
 
 # Apply an optimizer here to minimize the above loss functions
-D_solver = tf.train.AdamOptimizer().minimize(D_loss) # --> add var_list
-G_solver = tf.train.AdamOptimizer().minimize(G_loss) # --> add var_list
+D_solver = tf.train.AdamOptimizer().minimize(D_loss, var_list = D_theta)
+G_solver = tf.train.AdamOptimizer().minimize(G_loss, var_list = G_theta)
 
 theta_D = [] ### FILL THIS IN
 theta_G = [] ### FILL THIS IN
@@ -97,9 +117,9 @@ with tf.Session() as sess:
         X_ground_truth = 0 ## Figure out how to get sketches 
 
 	_, D_loss_curr = sess.run([D_solver, D_loss],
-				  feed_dict={X_sketch: X_sketches, X_ground_truth = X_true})
+                feed_dict={X_sketch: X_sketches, X_ground_truth: X_true})
 	_, G_loss_curr = sess.run([G_solver, G_loss],
-				  feed_dict={X_ground_truth = X_true})
+                feed_dict={X_ground_truth: X_true})
 
     # Stops background threads
     coord.request_stop()
