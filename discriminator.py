@@ -1,6 +1,9 @@
 import tensorflow as tf
 from tensorflow.contrib.layers import batch_norm
-from tensorflow.contrib.keras.layers import LeakyReLU as lrelu
+
+
+def lrelu(x, alpha=0.2):
+    return tf.maximum(x * alpha, x)
 
 
 def conv(x, W, b, strides=2, decay=0.99):
@@ -56,7 +59,7 @@ def conv_net(x):
         'd1': bias(1),
     }
 
-    x = tf.reshape(x, shape=[-1, 128, 128, 1])
+    x = tf.reshape(x, shape=[-1, 128, 128, 4])
 
     c1 = conv(x, weights['c1'], biases['c1'], strides=2)
 
@@ -73,3 +76,11 @@ def conv_net(x):
     d1 = dense(c6, weights['d1'], biases['d1'])
 
     return d1
+
+
+def test_discriminator():
+    pass
+
+
+if __name__ == "__main__":
+    test_discriminator()
