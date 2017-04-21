@@ -21,9 +21,9 @@ def next_data_batch(minibatch_size):
     pass
 
 # --> Add conditional stuff
-G_sample = generator(Z)
-D_real = discriminator(X)
-D_fake = discriminator(G_sample)
+G_sample = generator(Z) # add conditional parameter
+D_real = discriminator(y,X)
+D_fake = discriminator(y,G_sample)
 
 D_loss = -tf.reduce_mean(tf.log(D_real) + tf.log(1. - D_fake))
 G_loss = -tf.reduce_mean(tf.log(D_fake)) + tf.reduce_mean(X - D_fake)
@@ -45,8 +45,11 @@ for i in range(epochs):
 
     X_batch = next_data_batch(minib_size)  # TODO: Change this to something
 
+    y_batch = next_data_batch(minib_size) # CHANGE TO GET OUTLINES
+
     _, D_loss_curr = sess.run([D_solver, D_loss],
-                              feed_dict={X: X_batch, Z: noise_Z(minib_size)})
+                              feed_dict={X: X_batch, Z: noise_Z(minib_size),
+                              y: y_batch})
     _, G_loss_curr = sess.run([G_solver, G_loss],
-                              feed_dict={Z: noise_Z(minib_size)})
+                              feed_dict={Z: noise_Z(minib_size), y: y_batch})
 
