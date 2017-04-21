@@ -14,12 +14,6 @@ X = tf.placeholder(tf.float32, shape=[None, X_dim])
 y = tf.placeholder(tf.float32, shape=[None, y_dim])
 Z = tf.placeholder(tf.float32, shape=[None, Z_dim])
 
-""" Discriminator """
-D_theta = []
-
-""" Generator """
-G_theta = []
-
 def generator(x):
     return u_net(x)
 
