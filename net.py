@@ -66,8 +66,8 @@ X_ground_truth = tf.placeholder(tf.float32, shape=[None, IMAGE_SIZE*input_nc], n
 G_sample = generator(X_sketch) # add conditional parameter
 
 D_W, D_b = conv_weights()
-D_theta.extend(D_W.values())
-D_theta.extend(D_b.values())
+theta_D = list(D_W.values) + list(D_b.values)
+theta_G = [] ### FILL THIS IN
 
 D_real, D_logit_real = discriminator(X_ground_truth, X_sketch, (D_W, D_b))
 D_fake, D_logit_fake = discriminator(X_ground_truth, G_sample, (D_W, D_b))
@@ -84,10 +84,6 @@ D_loss = D_loss_real + D_loss_fake
 G_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=D_logit_fake, 
     labels=tf.ones_like(D_logit_fake))) + tf.reduce_mean(X_sketch - D_fake)
 
-
-(D_W, D_b) = conv_weights()
-theta_D = list(D_W.values) + list(D_b.values)
-theta_G = [] ### FILL THIS IN
 
 # Apply an optimizer here to minimize the above loss functions
 D_solver = tf.train.AdamOptimizer().minimize(D_loss, var_list = theta_D)
