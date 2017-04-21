@@ -80,7 +80,7 @@ def conv_net(x, vars):
     c7 = conv(c6, weights['c7'], biases['c7'], strides=2)
 
     res = tf.reshape(c7, [-1, 1])
-    return tf.nn.sigmoid(res)
+    return (tf.nn.sigmoid(res), res)
 
 
 def test_conv_net():
