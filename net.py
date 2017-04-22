@@ -1,13 +1,12 @@
 import tensorflow as tf
 import numpy as np
 
-
-from generator import u_net
+from generator import Generator
 from discriminator import conv_net
 
 
-def generator(x):
-    return u_net(x)
+G = Generator()
+generator = G.eval
 
 
 def discriminator(x, g):
@@ -35,13 +34,11 @@ G_solver = tf.train.AdamOptimizer().minimize(G_loss) # --> add var_list
 sess = tf.Session()
 sess.run(tf.global_variables_initializer())
 
-epochs = 10000
-minib_size = 128
+epochs = 15
+minib_size = 4
 
 for i in range(epochs):
-
-    if i % 1000 == 0:
-        print("Epoch ", i)
+    print("Epoch %d" % i)
 
     X_batch = next_data_batch(minib_size)  # TODO: Change this to something
 
