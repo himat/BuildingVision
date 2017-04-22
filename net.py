@@ -17,7 +17,6 @@ train_path = "/sample_data" #"data/"
 test_path = "data/**"
 
 G = Generator()
-generator = G.eval
 
 def discriminator(x, g, W, b):
     x = tf.reshape(x, [-1, 128, 128, 1])
@@ -62,12 +61,11 @@ X_sketch = tf.placeholder(tf.float32, shape=[None, IMAGE_SIZE*input_nc], name='X
 # Z = tf.placeholder(tf.float32, shape=[None, 100])
 X_ground_truth = tf.placeholder(tf.float32, shape=[None, IMAGE_SIZE*input_nc], name='X_ground_truth')
 
-# --> Add conditional stuff
-G_sample = generator(X_sketch) # add conditional parameter
+G_sample = G.eval(X_sketch)
 
 D_W, D_b = conv_weights()
 theta_D = list(D_W.values) + list(D_b.values)
-theta_G = [] ### FILL THIS IN
+theta_G = G.getWeights()
 
 D_real, D_logit_real = discriminator(X_ground_truth, X_sketch, (D_W, D_b))
 D_fake, D_logit_fake = discriminator(X_ground_truth, G_sample, (D_W, D_b))
@@ -86,8 +84,8 @@ G_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=D_logit_f
 
 
 # Apply an optimizer here to minimize the above loss functions
-D_solver = tf.train.AdamOptimizer().minimize(D_loss, var_list = theta_D)
-G_solver = tf.train.AdamOptimizer().minimize(G_loss, var_list = theta_G)
+D_solver = tf.train.AdamOptimizer().minimize(D_loss, var_list=theta_D)
+G_solver = tf.train.AdamOptimizer().minimize(G_loss, var_list=theta_G)
 
 
 with tf.Session() as sess:

@@ -5,10 +5,10 @@ import tensorflow as tf
 
 def filters(in_filters, out_filters, kernel_size=4):
     shape = [kernel_size, kernel_size, in_filters, out_filters]
-    return tf.Variable(tf.random_normal(shape, mean=0.0, stddev=0.02))
+    return tf.Variable(tf.random_normal(shape, stddev=0.02))
 
 def bias(filters):
-    return tf.Variable(tf.random_normal([filters], mean=0.0, stddev=0.02))
+    return tf.Variable(tf.random_normal([filters], stddev=0.02))
 
 
 # Tensorflow layer shortcuts
