@@ -8,8 +8,8 @@ from discriminator import conv_net, conv_weights
 epochs = 10
 mb_size = 7
 
-train_path = "/sample_data"  # "data/"
-test_path = "/data/*****"
+train_path = "/data/train"  # "data/"
+test_path = "/data/test"
 
 IMAGE_DIM = 128
 IMAGE_SIZE = 16384  # 128 x 128
@@ -35,7 +35,7 @@ theta_G = generator.weights
 dir = os.path.dirname(os.path.realpath(__file__))
 
 filetype = ".jpg"
-ground_truth_files_path = dir + train_path + "/ground_truth"
+ground_truth_files_path = dir + train_path + "/real"
 ground_truth_files = ground_truth_files_path + "/*" + filetype
 edges_files_path = dir + train_path + "/edges"
 edges_files = edges_files_path + "/*" + filetype
@@ -53,6 +53,7 @@ truth_filenames_tf = tf.convert_to_tensor(truth_filenames_np)
 
 def get_edges_file(f):
     # Splits at last occurrence of / to get the file name
+    f = f.decode("utf-8")
     actual_file_name = f.rpartition("/")[2]
     return edges_files_path + "/" + actual_file_name
 
@@ -153,7 +154,7 @@ with tf.Session() as sess:
         [X_truth_batch, X_edges_batch] = sess.run([truth_images_batch,
                                                    edges_images_batch])
 
-        print "Batch shape ", X_truth_batch.shape
+        print("Batch shape ", X_truth_batch.shape)
 
         _, D_loss_curr = sess.run([D_solver, D_loss], 
                               feed_dict={X_ground_truth: X_truth_batch,
