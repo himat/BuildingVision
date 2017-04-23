@@ -27,8 +27,8 @@ def discriminator(x, g, W, b):
     return conv_net(y, (W, b))
 
 # Generator Model
-theta_G = generator.weights
 generator = Generator()
+theta_G = generator.weights
 
 
 def next_data_batch(minibatch_size):
@@ -67,7 +67,6 @@ images_batch = tf.train.shuffle_batch(
 
 
 X_sketch = tf.placeholder(tf.float32, shape=[None, IMAGE_SIZE*input_nc], name='X')
-# Z = tf.placeholder(tf.float32, shape=[None, 100])
 X_ground_truth = tf.placeholder(tf.float32, shape=[None, IMAGE_SIZE*input_nc], name='X_ground_truth')
 
 # Generate CGAN outputs
