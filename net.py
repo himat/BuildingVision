@@ -65,9 +65,6 @@ edges_fnames_tf = tf.convert_to_tensor(edges_fnames)
 print("Truth list shape: ", truth_filenames_tf.shape)
 print("Edges list shape: ", edges_fnames_tf.shape)
 
-print("truth filenames: ", truth_filenames_np)
-print("edges filenames: ", edges_fnames)
-
 
 truth_image_name, edges_image_name = tf.train.slice_input_producer(
     [truth_filenames_tf, edges_fnames_tf], shuffle=False)
