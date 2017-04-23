@@ -9,8 +9,8 @@ from discriminator import conv_net, conv_weights
 epochs = 10
 mb_size = 7
 
-train_path = "/data/train"  # "data/"
-test_path = "/data/test"
+train_path = os.path.join("data", "train")  # "data/"
+test_path = os.path.join("data", "test")
 
 IMAGE_DIM = 128
 IMAGE_SIZE = 16384  # 128 x 128
@@ -36,13 +36,14 @@ theta_G = generator.weights
 dir = os.path.dirname(os.path.realpath(__file__))
 
 filetype = ".jpg"
-ground_truth_files_path = dir + train_path + "/real"
-ground_truth_files = ground_truth_files_path + "/*" + filetype
-edges_files_path = dir + train_path + "/edges"
-edges_files = edges_files_path + "/*" + filetype
+ground_truth_files_path = os.path.join(dir, train_path, "real")
+ground_truth_files = os.path.join(ground_truth_files_path, "*" + filetype)
+edges_files_path = os.path.join(dir, train_path, "edges")
+edges_files = os.path.join(edges_files_path, "*" + filetype)
 
 truth_filenames_tf = tf.train.match_filenames_once(ground_truth_files)
 
+print(ground_truth_files)
 truth_filenames_np = glob.glob(ground_truth_files)
 
 
@@ -53,11 +54,12 @@ truth_filenames_tf = tf.convert_to_tensor(truth_filenames_np)
 def get_edges_file(f):
     # Splits at last occurrence of / to get the file name
     # f = f.decode("utf-8")
-    actual_file_name = f.rpartition("/")[2]
-    return edges_files_path + "/" + actual_file_name
+    actual_file_name = f.rpartition(os.sep)[2]
+    return os.path.join(edges_files_path, actual_file_name)
 
 
 edges_fnames = [get_edges_file(f) for f in truth_filenames_np]
+print(edges_fnames[:10])
 edges_fnames_tf = tf.convert_to_tensor(edges_fnames)
 
 
@@ -86,7 +88,7 @@ edges_image.set_shape([IMAGE_DIM, IMAGE_DIM, 1])
 edges_image = tf.cast(edges_image, tf.float32)
 edges_image = edges_image/255.0
 
-min_queue_examples = mb_size
+min_queue_examples = 3*mb_size
 
 # Background thread to batch images
 [truth_images_batch, edges_images_batch] = tf.train.shuffle_batch(
