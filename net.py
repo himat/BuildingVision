@@ -16,16 +16,24 @@ input_nc = 3 # number of input image channels
 train_path = "/sample_data" #"data/"
 test_path = "data/**"
 
-generator = Generator()
 
+# Discriminator Model
+D_W, D_b = conv_weights()
+theta_D = list(D_W.values) + list(D_b.values)
 def discriminator(x, g, W, b):
     x = tf.reshape(x, [-1, 128, 128, 1])
     g = tf.reshape(g, [-1, 128, 128, 3])
     y = tf.concat([x, g], 3)
     return conv_net(y, (W, b))
 
+# Generator Model
+theta_G = generator.weights
+generator = Generator()
+
+
 def next_data_batch(minibatch_size):
     pass
+
 
 dir = os.path.dirname(os.path.realpath(__file__))
 input_folder = dir + train_path + "/*.jpg"
@@ -57,23 +65,21 @@ images_batch = tf.train.shuffle_batch(
                 allow_smaller_final_batch=True)
 
 
+
 X_sketch = tf.placeholder(tf.float32, shape=[None, IMAGE_SIZE*input_nc], name='X')
 # Z = tf.placeholder(tf.float32, shape=[None, 100])
 X_ground_truth = tf.placeholder(tf.float32, shape=[None, IMAGE_SIZE*input_nc], name='X_ground_truth')
 
+# Generate CGAN outputs
 G_sample = generator(X_sketch)
-
-D_W, D_b = conv_weights()
-theta_D = list(D_W.values) + list(D_b.values)
-theta_G = generator.weights
-
 D_real, D_logit_real = discriminator(X_ground_truth, X_sketch, (D_W, D_b))
 D_fake, D_logit_fake = discriminator(X_ground_truth, G_sample, (D_W, D_b))
 
-# Classic GAN Loss
+# Calculate CGAN (classic) losses
 # D_loss = -tf.reduce_mean(tf.log(D_real) + tf.log(1. - D_fake))
 # G_loss = -tf.reduce_mean(tf.log(D_fake)) + tf.reduce_mean(X_sketch - D_fake)
 
+# Calculate CGAN (alternative) losses
 D_loss_real = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=D_logit_real, 
     labels=tf.ones_like(D_logit_real)))
 D_loss_fake = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=D_logit_fake, 
@@ -82,8 +88,7 @@ D_loss = D_loss_real + D_loss_fake
 G_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=D_logit_fake, 
     labels=tf.ones_like(D_logit_fake))) + tf.reduce_mean(X_sketch - D_fake)
 
-
-# Apply an optimizer here to minimize the above loss functions
+# Apply an optimizer to minimize the above loss functions
 D_solver = tf.train.AdamOptimizer().minimize(D_loss, var_list=theta_D)
 G_solver = tf.train.AdamOptimizer().minimize(G_loss, var_list=theta_G)
 
