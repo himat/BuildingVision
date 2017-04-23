@@ -16,23 +16,6 @@ IMAGE_DIM = 128
 IMAGE_SIZE = 16384 # 128 x 128
 input_nc = 3 # number of input image channels
 
-X_dim = 128*128
-y_dim = 128*128
-Z_dim = 100
-
-X = tf.placeholder(tf.float32, shape=[None, X_dim])
-y = tf.placeholder(tf.float32, shape=[None, y_dim])
-Z = tf.placeholder(tf.float32, shape=[None, Z_dim])
-
-""" Discriminator """
-D_theta = []
-
-""" Generator """
-G_theta = []
-
-def generator(x):
-    return u_net(x)
-
 # Discriminator Model
 D_W, D_b = conv_weights()
 theta_D = list(D_W.values) + list(D_b.values)
