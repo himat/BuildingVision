@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import os
+import glob
 
 from generator import Generator
 from discriminator import conv_net, conv_weights
@@ -42,10 +43,8 @@ edges_files = edges_files_path + "/*" + filetype
 
 truth_filenames_tf = tf.train.match_filenames_once(ground_truth_files)
 
-truth_filenames_np = []
-with tf.Session() as sess:
-    sess.run(tf.global_variables_initializer())
-    truth_filenames_np = sess.run(truth_filenames_tf)
+truth_filenames_np = glob.glob(ground_truth_files)
+
 
 np.random.shuffle(truth_filenames_np)
 truth_filenames_tf = tf.convert_to_tensor(truth_filenames_np)
@@ -53,7 +52,7 @@ truth_filenames_tf = tf.convert_to_tensor(truth_filenames_np)
 
 def get_edges_file(f):
     # Splits at last occurrence of / to get the file name
-    f = f.decode("utf-8")
+    # f = f.decode("utf-8")
     actual_file_name = f.rpartition("/")[2]
     return edges_files_path + "/" + actual_file_name
 
@@ -103,7 +102,8 @@ min_queue_examples = mb_size
 X_sketch = tf.placeholder(
     tf.float32, shape=[mb_size, IMAGE_DIM, IMAGE_DIM, 1], name='X_sketch')
 X_ground_truth = tf.placeholder(
-    tf.float32, shape=[mb_size, IMAGE_DIM, IMAGE_DIM, input_nc], name='X_ground_truth')
+    tf.float32, shape=[mb_size, IMAGE_DIM,
+                       IMAGE_DIM, input_nc], name='X_ground_truth')
 
 # Generate CGAN outputs
 G_sample = generator(X_sketch)
@@ -153,13 +153,12 @@ with tf.Session() as sess:
 
         print("Batch shape ", X_truth_batch.shape)
 
-        _, D_loss_curr = sess.run([D_solver, D_loss], 
-                              feed_dict={X_ground_truth: X_truth_batch,
-                                       X_sketch: X_edges_batch})
+        _, D_loss_curr = sess.run([D_solver, D_loss],
+                                  feed_dict={X_ground_truth: X_truth_batch,
+                                             X_sketch: X_edges_batch})
         _, G_loss_curr = sess.run([G_solver, G_loss],
-                              feed_dict={X_ground_truth: X_truth_batch,
-                                        X_sketch: X_edges_batch})
-
-    # Stops background threads
-    coord.request_stop()
-    coord.join(threads)
+                                  feed_dict={X_ground_truth: X_truth_batch,
+                                             X_sketch: X_edges_batch})
+        # Stops background threads
+        coord.request_stop()
+        coord.join(threads)
