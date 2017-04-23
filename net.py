@@ -86,7 +86,7 @@ D_loss_fake = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=D_lo
     labels=tf.zeros_like(D_logit_fake)))
 D_loss = D_loss_real + D_loss_fake
 G_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=D_logit_fake, 
-    labels=tf.ones_like(D_logit_fake))) + tf.reduce_mean(X_sketch - D_fake)
+    labels=tf.ones_like(D_logit_fake))) + tf.reduce_mean(X_ground_truth - G_sample)
 
 # Apply an optimizer to minimize the above loss functions
 D_solver = tf.train.AdamOptimizer().minimize(D_loss, var_list=theta_D)
