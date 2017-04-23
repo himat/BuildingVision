@@ -119,14 +119,11 @@ class Generator(object):
             bias(3)
         ]
 
-
-    # Return list of all weight variables in the network
-    def getWeights(self):
-        return self.w + self.b
+        self.weights = self.w + self.b
 
 
     # Evaluate network given input
-    def eval(self, x):
+    def __call__(self, x):
         x = tf.reshape(x, [-1, 128, 128, 1])
         w, b = self.w, self.b
 
@@ -155,7 +152,7 @@ def test():
     shape = [4, 128, 128, 1]
     x = tf.Variable(tf.random_normal(shape))
     generator = Generator()
-    print(generator.eval(x).shape)
+    print(generator(x).shape)
 
 if __name__ == '__main__':
     test()
