@@ -2,12 +2,11 @@ import tensorflow as tf
 import numpy as np
 import os
 
-
 from generator import Generator
 from discriminator import conv_net, conv_weights
 
 epochs = 10
-mb_size = 14
+mb_size = 7
 
 train_path = "/sample_data"  # "data/"
 test_path = "/data/*****"
@@ -18,13 +17,13 @@ input_nc = 3  # number of input image channels
 
 # Discriminator Model
 D_W, D_b = conv_weights()
-theta_D = list(D_W.values) + list(D_b.values)
+theta_D = list(D_W.values()) + list(D_b.values())
 
 
-def discriminator(x, g, W, b):
-    x = tf.reshape(x, [-1, 128, 128, 1])
-    g = tf.reshape(g, [-1, 128, 128, 3])
-    y = tf.concat([x, g], axis=3)
+def discriminator(color, sketch, W, b):
+    sketch = tf.reshape(sketch, [-1, 128, 128, 1])
+    color = tf.reshape(color, [-1, 128, 128, 3])
+    y = tf.concat([color, sketch], axis=3)
     return conv_net(y, (W, b))
 
 
@@ -104,14 +103,14 @@ min_queue_examples = mb_size
 
 
 X_sketch = tf.placeholder(
-    tf.float32, shape=[None, IMAGE_SIZE*input_nc], name='X')
+    tf.float32, shape=[mb_size, IMAGE_DIM, IMAGE_DIM, 1], name='X_sketch')
 X_ground_truth = tf.placeholder(
-    tf.float32, shape=[None, IMAGE_SIZE*input_nc], name='X_ground_truth')
+    tf.float32, shape=[mb_size, IMAGE_DIM, IMAGE_DIM, input_nc], name='X_ground_truth')
 
 # Generate CGAN outputs
 G_sample = generator(X_sketch)
-D_real, D_logit_real = discriminator(X_ground_truth, X_sketch, (D_W, D_b))
-D_fake, D_logit_fake = discriminator(X_ground_truth, G_sample, (D_W, D_b))
+D_real, D_logit_real = discriminator(X_ground_truth, X_sketch, D_W, D_b)
+D_fake, D_logit_fake = discriminator(G_sample, X_sketch, D_W, D_b)
 
 # Calculate CGAN (classic) losses
 # D_loss = -tf.reduce_mean(tf.log(D_real) + tf.log(1. - D_fake))
@@ -147,18 +146,21 @@ with tf.Session() as sess:
 
     for i in range(epochs):
 
-        if i % 1000 == 0:
-            print("Epoch ", i)
+        # if i % 1000 == 0:
+        print("Epoch ", i)
 
-            # Get next batch
-            [X_truth_batch, X_edges_batch] = sess.run([truth_images_batch,
-                                                       edges_images_batch])
+        # Get next batch
+        [X_truth_batch, X_edges_batch] = sess.run([truth_images_batch,
+                                                   edges_images_batch])
 
-        _, D_loss_curr = sess.run(
-            [D_solver, D_loss], feed_dict={X_ground_truth: X_truth_batch,
-                                           X_sketch: X_edges_batch})
+        print "Batch shape ", X_truth_batch.shape
+
+        _, D_loss_curr = sess.run([D_solver, D_loss], 
+                              feed_dict={X_ground_truth: X_truth_batch,
+                                       X_sketch: X_edges_batch})
         _, G_loss_curr = sess.run([G_solver, G_loss],
-                                  feed_dict={X_ground_truth: X_truth_batch})
+                              feed_dict={X_ground_truth: X_truth_batch,
+                                        X_sketch: X_edges_batch})
 
     # Stops background threads
     coord.request_stop()
