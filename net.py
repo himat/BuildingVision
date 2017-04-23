@@ -39,16 +39,12 @@ theta_D = list(D_W.values) + list(D_b.values)
 def discriminator(x, g, W, b):
     x = tf.reshape(x, [-1, 128, 128, 1])
     g = tf.reshape(g, [-1, 128, 128, 3])
-    y = tf.concat([x, g], 3)
+    y = tf.concat([x, g], axis=3)
     return conv_net(y, (W, b))
 
 # Generator Model
 generator = Generator()
 theta_G = generator.weights
-
-
-def next_data_batch(minibatch_size):
-    pass
 
 
 dir = os.path.dirname(os.path.realpath(__file__))
