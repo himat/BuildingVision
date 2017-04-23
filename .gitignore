@@ -1,3 +1,4 @@
 data/
 *.swp
 sample_data/
+*.pyc
