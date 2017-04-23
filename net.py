@@ -92,7 +92,7 @@ min_queue_examples = mb_size
 [truth_images_batch, edges_images_batch] = tf.train.shuffle_batch(
     [truth_image, edges_image],  # image_tensor
     batch_size=mb_size,
-    capacity=min_queue_examples + 2*mb_size,
+    capacity=min_queue_examples + 2*mb_size + 1000,
     min_after_dequeue=min_queue_examples,
     # shapes=([IMAGE_DIM, IMAGE_DIM, input_nc]),
     num_threads=4,
