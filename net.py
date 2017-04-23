@@ -3,7 +3,7 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 
-from generator import u_net
+from generator import Generator
 from discriminator import conv_net, conv_weights
 
 epochs = 10
@@ -33,14 +33,23 @@ G_theta = []
 def generator(x):
     return u_net(x)
 
+# Discriminator Model
+D_W, D_b = conv_weights()
+theta_D = list(D_W.values) + list(D_b.values)
 def discriminator(x, g, W, b):
     x = tf.reshape(x, [-1, 128, 128, 1])
     g = tf.reshape(g, [-1, 128, 128, 3])
     y = tf.concat([x, g], 3)
     return conv_net(y, (W, b))
 
+# Generator Model
+generator = Generator()
+theta_G = generator.weights
+
+
 def next_data_batch(minibatch_size):
     pass
+
 
 dir = os.path.dirname(os.path.realpath(__file__))
 
@@ -110,28 +119,31 @@ images_batch = tf.train.shuffle_batch(
 
 
 X_sketch = tf.placeholder(tf.float32, shape=[None, IMAGE_SIZE*input_nc], name='X')
-# Z = tf.placeholder(tf.float32, shape=[None, 100])
 X_ground_truth = tf.placeholder(tf.float32, shape=[None, IMAGE_SIZE*input_nc], name='X_ground_truth')
 
-# --> Add conditional stuff
-G_sample = generator(X_sketch) # add conditional parameter
+# Generate CGAN outputs
+G_sample = generator(X_sketch)
+D_real, D_logit_real = discriminator(X_ground_truth, X_sketch, (D_W, D_b))
+D_fake, D_logit_fake = discriminator(X_ground_truth, G_sample, (D_W, D_b))
 
-D_W, D_b = conv_weights()
-D_theta.extend(D_W.values())
-D_theta.extend(D_b.values())
+# Calculate CGAN (classic) losses
+# D_loss = -tf.reduce_mean(tf.log(D_real) + tf.log(1. - D_fake))
+# G_loss = -tf.reduce_mean(tf.log(D_fake)) + tf.reduce_mean(X_sketch - D_fake)
 
-D_real = discriminator(X_ground_truth, X_sketch, (D_W, D_b))
-D_fake = discriminator(X_ground_truth, G_sample, (D_W, D_b))
 
-D_loss = -tf.reduce_mean(tf.log(D_real) + tf.log(1. - D_fake))
-G_loss = -tf.reduce_mean(tf.log(D_fake)) + tf.reduce_mean(X_sketch - D_fake)
+# Calculate CGAN (alternative) losses
+D_loss_real = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=D_logit_real, 
+    labels=tf.ones_like(D_logit_real)))
+D_loss_fake = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=D_logit_fake, 
+    labels=tf.zeros_like(D_logit_fake)))
+D_loss = D_loss_real + D_loss_fake
+lmbda = 0.5 # fix scaling
+G_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=D_logit_fake, 
+    labels=tf.ones_like(D_logit_fake))) + lmbda*tf.reduce_mean(X_ground_truth - G_sample)
 
-# Apply an optimizer here to minimize the above loss functions
-D_solver = tf.train.AdamOptimizer().minimize(D_loss, var_list = D_theta)
-G_solver = tf.train.AdamOptimizer().minimize(G_loss, var_list = G_theta)
-
-theta_D = [] ### FILL THIS IN
-theta_G = [] ### FILL THIS IN
+# Apply an optimizer to minimize the above loss functions
+D_solver = tf.train.AdamOptimizer().minimize(D_loss, var_list=theta_D)
+G_solver = tf.train.AdamOptimizer().minimize(G_loss, var_list=theta_G)
 
 
 with tf.Session() as sess:
@@ -151,9 +163,11 @@ with tf.Session() as sess:
 
 
     	_, D_loss_curr = sess.run([D_solver, D_loss],
+
                     feed_dict={X_ground_truth: X_truth_batch, X_sketch: X_edges_batch })
     	_, G_loss_curr = sess.run([G_solver, G_loss],
                     feed_dict={X_ground_truth: X_truth_batch})
+
 
     # Stops background threads
     coord.request_stop()
