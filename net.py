@@ -140,6 +140,8 @@ G_loss = tf.reduce_mean(
 D_solver = tf.train.AdamOptimizer().minimize(D_loss, var_list=theta_D)
 G_solver = tf.train.AdamOptimizer().minimize(G_loss, var_list=theta_G)
 
+if not os.path.exists('out/'):
+    os.makedirs('out/')
 
 iter_to_print = 5
 
