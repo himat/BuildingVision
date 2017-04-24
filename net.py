@@ -86,16 +86,16 @@ edges_image.set_shape([IMAGE_DIM, IMAGE_DIM, 1])
 edges_image = tf.cast(edges_image, tf.float32)
 edges_image = edges_image/255.0
 
-min_queue_examples = mb_size
-
+min_queue_examples = 20*mb_size
+num_threads = 4
 # Background thread to batch images
 [truth_images_batch, edges_images_batch] = tf.train.shuffle_batch(
     [truth_image, edges_image],  # image_tensor
     batch_size=mb_size,
-    capacity=min_queue_examples + 2*mb_size + 1000,
+    capacity=min_queue_examples + num_threads*mb_size,
     min_after_dequeue=min_queue_examples,
     # shapes=([IMAGE_DIM, IMAGE_DIM, input_nc]),
-    num_threads=4,
+    num_threads=num_threads,
     allow_smaller_final_batch=True)
 
 
@@ -135,6 +135,8 @@ D_solver = tf.train.AdamOptimizer().minimize(D_loss, var_list=theta_D)
 G_solver = tf.train.AdamOptimizer().minimize(G_loss, var_list=theta_G)
 
 
+iter_to_print = 1
+
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
 
@@ -144,8 +146,8 @@ with tf.Session() as sess:
 
     for i in range(epochs):
 
-        # if i % 1000 == 0:
-        print("Epoch ", i)
+        if i % iter_to_print == 0:
+            print("Epoch ", i)
 
         # Get next batch
         [X_truth_batch, X_edges_batch] = sess.run([truth_images_batch,
@@ -159,6 +161,12 @@ with tf.Session() as sess:
         _, G_loss_curr = sess.run([G_solver, G_loss],
                                   feed_dict={X_ground_truth: X_truth_batch,
                                              X_sketch: X_edges_batch})
+
+
+        if i % iter_to_print == 0:
+            print("D loss: {:.4}".format(D_loss_curr))
+            print("G loss: {:.4}".format(G_loss_curr))
+        
         # Stops background threads
         coord.request_stop()
         coord.join(threads)
