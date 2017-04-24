@@ -129,7 +129,7 @@ D_loss_fake = tf.reduce_mean(
     tf.nn.sigmoid_cross_entropy_with_logits(
         logits=D_logit_fake, labels=tf.zeros_like(D_logit_fake)))
 D_loss = D_loss_real + D_loss_fake
-lmbda = 0.5  # fix scaling
+lmbda = 0.2  # fix scaling
 G_loss = tf.reduce_mean(
     tf.nn.sigmoid_cross_entropy_with_logits(
         logits=D_logit_fake,
