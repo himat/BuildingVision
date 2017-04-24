@@ -5,9 +5,10 @@ import glob
 
 from generator import Generator
 from discriminator import conv_net, conv_weights
+from util import plot_single, plot_save_batch
 
-epochs = 10
-mb_size = 7
+epochs = 30
+mb_size = 4
 
 train_path = "/data/train"  # "data/"
 test_path = "/data/test"
@@ -20,6 +21,8 @@ input_nc = 3  # number of input image channels
 D_W, D_b = conv_weights()
 theta_D = list(D_W.values()) + list(D_b.values())
 
+print("Epochs: ", epochs)
+print("Minibatch size: ", mb_size)
 
 def discriminator(color, sketch, W, b):
     sketch = tf.reshape(sketch, [-1, 128, 128, 1])
@@ -86,7 +89,7 @@ edges_image.set_shape([IMAGE_DIM, IMAGE_DIM, 1])
 edges_image = tf.cast(edges_image, tf.float32)
 edges_image = edges_image/255.0
 
-min_queue_examples = 20*mb_size
+min_queue_examples = epochs*mb_size
 num_threads = 4
 # Background thread to batch images
 [truth_images_batch, edges_images_batch] = tf.train.shuffle_batch(
@@ -98,6 +101,7 @@ num_threads = 4
     num_threads=num_threads,
     allow_smaller_final_batch=True)
 
+print("Batch shape ", truth_images_batch.shape)
 
 X_sketch = tf.placeholder(
     tf.float32, shape=[mb_size, IMAGE_DIM, IMAGE_DIM, 1], name='X_sketch')
@@ -135,7 +139,7 @@ D_solver = tf.train.AdamOptimizer().minimize(D_loss, var_list=theta_D)
 G_solver = tf.train.AdamOptimizer().minimize(G_loss, var_list=theta_G)
 
 
-iter_to_print = 1
+iter_to_print = 5
 
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
@@ -153,7 +157,15 @@ with tf.Session() as sess:
         [X_truth_batch, X_edges_batch] = sess.run([truth_images_batch,
                                                    edges_images_batch])
 
-        print("Batch shape ", X_truth_batch.shape)
+        if i % iter_to_print == 0:
+            produced_image = sess.run(G_sample, 
+                                  feed_dict={X_sketch: X_edges_batch})
+           
+            # plot_single(produced_image[0])
+            plot_save_batch(produced_image, i, save_only=True)
+
+
+            
 
         _, D_loss_curr = sess.run([D_solver, D_loss],
                                   feed_dict={X_ground_truth: X_truth_batch,
