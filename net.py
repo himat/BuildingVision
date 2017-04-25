@@ -7,7 +7,7 @@ from generator import Generator
 from discriminator import conv_net, conv_weights
 from util import plot_single, plot_save_batch
 
-epochs = 30
+epochs = 50
 mb_size = 4
 
 train_path = os.path.join("data", "train")  # "data/"
@@ -118,7 +118,7 @@ D_fake, D_logit_fake = discriminator(G_sample, X_sketch, D_W, D_b)
 
 # Calculate CGAN (classic) losses
 # D_loss = -tf.reduce_mean(tf.log(D_real) + tf.log(1. - D_fake))
-# G_loss = -tf.reduce_mean(tf.log(D_fake)) + tf.reduce_mean(X_sketch - D_fake)
+# G_loss = -tf.reduce_mean(tf.log(D_fake)) #+ tf.reduce_mean(X_ground_truth - G_sample)
 
 
 # Calculate CGAN (alternative) losses
@@ -129,12 +129,12 @@ D_loss_fake = tf.reduce_mean(
     tf.nn.sigmoid_cross_entropy_with_logits(
         logits=D_logit_fake, labels=tf.zeros_like(D_logit_fake)))
 D_loss = D_loss_real + D_loss_fake
-lmbda = 0.2  # fix scaling
+lmbda = 1  # fix scaling
 G_loss = tf.reduce_mean(
     tf.nn.sigmoid_cross_entropy_with_logits(
         logits=D_logit_fake,
-        labels=tf.ones_like(D_logit_fake))) + lmbda*tf.reduce_mean(
-            X_ground_truth - G_sample)
+        labels=tf.ones_like(D_logit_fake))) #+ lmbda*tf.reduce_mean(
+            #X_ground_truth - G_sample)
 
 # Apply an optimizer to minimize the above loss functions
 D_solver = tf.train.AdamOptimizer().minimize(D_loss, var_list=theta_D)
@@ -160,6 +160,7 @@ with tf.Session() as sess:
         # Get next batch
         [X_truth_batch, X_edges_batch] = sess.run([truth_images_batch,
                                                    edges_images_batch])
+        # print(sess.run((D_fake, D_logit_fake)))
 
         if i % iter_to_print == 0:
             produced_image = sess.run(G_sample, 
@@ -170,10 +171,10 @@ with tf.Session() as sess:
 
 
             
-
-        _, D_loss_curr = sess.run([D_solver, D_loss],
-                                  feed_dict={X_ground_truth: X_truth_batch,
-                                             X_sketch: X_edges_batch})
+        for j in range(3):
+            _, D_loss_curr = sess.run([D_solver, D_loss],
+                                      feed_dict={X_ground_truth: X_truth_batch,
+                                                 X_sketch: X_edges_batch})
         _, G_loss_curr = sess.run([G_solver, G_loss],
                                   feed_dict={X_ground_truth: X_truth_batch,
                                              X_sketch: X_edges_batch})
