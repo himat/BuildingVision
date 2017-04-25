@@ -45,3 +45,4 @@ def plot_save_batch(batch, iter_num, save_only=False):
         plt.close(fig)
     else:
         plt.show() 
+

@@ -8,7 +8,7 @@ from discriminator import conv_net, conv_weights
 from util import plot_single, plot_save_batch
 
 epochs = 50
-mb_size = 4
+mb_size = 10
 
 train_path = os.path.join("data", "train")  # "data/"
 test_path = os.path.join("data", "test")
@@ -62,7 +62,6 @@ def get_edges_file(f):
 
 
 edges_fnames = [get_edges_file(f) for f in truth_filenames_np]
-print(edges_fnames[:10])
 edges_fnames_tf = tf.convert_to_tensor(edges_fnames)
 
 
@@ -166,15 +165,14 @@ with tf.Session() as sess:
             produced_image = sess.run(G_sample, 
                                   feed_dict={X_sketch: X_edges_batch})
            
-            # plot_single(produced_image[0])
-            plot_save_batch(produced_image, i, save_only=True)
+            plot_save_batch(produced_image[0:4], i, save_only=True)
 
 
             
-        for j in range(3):
-            _, D_loss_curr = sess.run([D_solver, D_loss],
-                                      feed_dict={X_ground_truth: X_truth_batch,
-                                                 X_sketch: X_edges_batch})
+        # for j in range(3):
+        _, D_loss_curr = sess.run([D_solver, D_loss],
+                                  feed_dict={X_ground_truth: X_truth_batch,
+                                             X_sketch: X_edges_batch})
         _, G_loss_curr = sess.run([G_solver, G_loss],
                                   feed_dict={X_ground_truth: X_truth_batch,
                                              X_sketch: X_edges_batch})
@@ -184,6 +182,6 @@ with tf.Session() as sess:
             print("D loss: {:.4}".format(D_loss_curr))
             print("G loss: {:.4}".format(G_loss_curr))
         
-        # Stops background threads
-        coord.request_stop()
-        coord.join(threads)
+    # Stops background threads
+    coord.request_stop()
+    coord.join(threads)
