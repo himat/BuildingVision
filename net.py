@@ -25,11 +25,11 @@ D_W, D_b = conv_weights()
 theta_D = list(D_W.values()) + list(D_b.values())
 
 
-def discriminator(color, sketch, W, b):
+def discriminator(color, sketch, W, b, is_training):
     sketch = tf.reshape(sketch, [-1, 128, 128, 1])
     color = tf.reshape(color, [-1, 128, 128, 3])
     y = tf.concat([color, sketch], axis=3)
-    return conv_net(y, (W, b))
+    return conv_net(y, (W, b), is_training=is_training)
 
 # Generator Model
 generator = Generator()
@@ -113,8 +113,10 @@ X_dropout_rate = tf.placeholder(tf.float32, shape=[], name='X_dropout_rate')
 
 # Generate CGAN outputs
 G_sample = generator(X_sketch, X_is_training)
-D_real, D_logit_real = discriminator(X_ground_truth, X_sketch, D_W, D_b)
-D_fake, D_logit_fake = discriminator(G_sample, X_sketch, D_W, D_b)
+D_real, D_logit_real = discriminator(X_ground_truth, X_sketch, D_W, D_b,
+                                     X_is_training)
+D_fake, D_logit_fake = discriminator(G_sample, X_sketch, D_W, D_b,
+                                     X_is_training)
 
 # Calculate CGAN (classic) losses
 # D_loss = -tf.reduce_mean(tf.log(D_real) + tf.log(1. - D_fake))
@@ -179,17 +181,17 @@ with tf.Session() as sess:
                                                  X_dropout_rate: 0.5})
 
         if i % epoch_to_print == 0:
-            produced_image = sess.run(G_sample, 
+            produced_image = sess.run(G_sample,
                                   feed_dict={X_sketch: X_edges_batch,
                                              X_is_training: False,
                                              X_dropout_rate: 0.0})
-           
+
             plot_save_batch(produced_image[0:4], i, save_only=True)
 
         # print out D probabil
-        # D_real_curr, D_fake_curr = sess.run([tf.reduce_mean(D_real), tf.reduce_mean(D_fake)], 
+        # D_real_curr, D_fake_curr = sess.run([tf.reduce_mean(D_real), tf.reduce_mean(D_fake)],
         #                           feed_dict={X_ground_truth: X_truth_batch,
-        #                                      X_sketch: X_edges_batch})            
+        #                                      X_sketch: X_edges_batch})
 
         _, D_loss_curr = sess.run([D_solver, D_loss],
                                   feed_dict={X_ground_truth: X_truth_batch,
@@ -197,9 +199,6 @@ with tf.Session() as sess:
         _, G_loss_curr = sess.run([G_solver, G_loss],
                                   feed_dict={X_ground_truth: X_truth_batch,
                                              X_sketch: X_edges_batch})
-
-
-
 
         if i % epoch_to_print == 0:
             print("D loss: {:.4}".format(D_loss_curr))
@@ -209,7 +208,7 @@ with tf.Session() as sess:
             # print("D_fake: {:.4}".format(D_fake_curr))
 
             print()
-        
+
     # Stops background threads
     coord.request_stop()
     coord.join(threads)
