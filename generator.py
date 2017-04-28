@@ -18,9 +18,9 @@ def conv(x, kernels, bias, stride=2):
     x = tf.nn.conv2d(x, kernels, strides, 'SAME')
     return tf.nn.bias_add(x, bias)
 
-def batchNorm(x, decay=0.99):
+def batchNorm(x, decay=0.99, is_training=True):
     return tf.contrib.layers.batch_norm(x, decay=decay,
-        is_training=True, updates_collections=None)
+        is_training=is_training, updates_collections=None)
 
 def leakyRelu(x, alpha=0.2):
     return tf.maximum(x * alpha, x)
@@ -49,23 +49,23 @@ def encoder_layer(x, kernels, bias):
     x = conv(x, kernels, bias)
     return leakyRelu(x)
 
-def encoder_layer_batchnorm(x, kernels, bias):
+def encoder_layer_batchnorm(x, kernels, bias, is_training):
     x = conv(x, kernels, bias)
-    x = batchNorm(x)
+    x = batchNorm(x, is_training=is_training)
     return leakyRelu(x)
 
-def decoder_layer_dropout(x, concat, kernels, bias):
+def decoder_layer_dropout(x, concat, kernels, bias, is_training, dropout_rate):
     if concat != None:
         x = tf.concat([x, concat], 3)
     x = up_conv(x, kernels, bias)
-    x = batchNorm(x)
-    x = dropout(x)
+    x = batchNorm(x, is_training=is_training)
+    x = dropout(x, rate=dropout_rate)
     return relu(x)
 
-def decoder_layer(x, concat, kernels, bias):
+def decoder_layer(x, concat, kernels, bias, is_training):
     x = tf.concat([x, concat], 3)
     x = up_conv(x, kernels, bias)
-    x = batchNorm(x)
+    x = batchNorm(x, is_training=is_training)
     return relu(x)
 
 def output_layer(x, concat, kernels, bias):
@@ -123,24 +123,24 @@ class Generator(object):
 
 
     # Evaluate network given input
-    def __call__(self, x):
+    def __call__(self, x, is_training=True, dropout_rate=0.5):
         x = tf.reshape(x, [-1, 128, 128, 1])
         w, b = self.w, self.b
 
         e1 = encoder_layer(x, w[0], b[0])
-        e2 = encoder_layer_batchnorm(e1, w[1], b[1])
-        e3 = encoder_layer_batchnorm(e2, w[2], b[2])
-        e4 = encoder_layer_batchnorm(e3, w[3], b[3])
-        e5 = encoder_layer_batchnorm(e4, w[4], b[4])
-        e6 = encoder_layer_batchnorm(e5, w[5], b[5])
-        e7 = encoder_layer_batchnorm(e6, w[6], b[6])
+        e2 = encoder_layer_batchnorm(e1, w[1], b[1], is_training)
+        e3 = encoder_layer_batchnorm(e2, w[2], b[2], is_training)
+        e4 = encoder_layer_batchnorm(e3, w[3], b[3], is_training)
+        e5 = encoder_layer_batchnorm(e4, w[4], b[4], is_training)
+        e6 = encoder_layer_batchnorm(e5, w[5], b[5], is_training)
+        e7 = encoder_layer_batchnorm(e6, w[6], b[6], is_training)
 
-        d8 = decoder_layer_dropout(e7, None, w[7], b[7])
-        d9 = decoder_layer_dropout(d8, e6, w[8], b[8])
-        d10 = decoder_layer_dropout(d9, e5, w[9], b[9])
-        d11 = decoder_layer(d10, e4, w[10], b[10])
-        d12 = decoder_layer(d11, e3, w[11], b[11])
-        d13 = decoder_layer(d12, e2, w[12], b[12])
+        d8 = decoder_layer_dropout(e7, None, w[7], b[7], is_training, dropout_rate)
+        d9 = decoder_layer_dropout(d8, e6, w[8], b[8], is_training, dropout_rate)
+        d10 = decoder_layer_dropout(d9, e5, w[9], b[9], is_training, dropout_rate)
+        d11 = decoder_layer(d10, e4, w[10], b[10], is_training)
+        d12 = decoder_layer(d11, e3, w[11], b[11], is_training)
+        d13 = decoder_layer(d12, e2, w[12], b[12], is_training)
 
         return output_layer(d13, e1, w[13], b[13])
 

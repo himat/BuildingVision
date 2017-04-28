@@ -7,10 +7,10 @@ from generator import Generator
 from discriminator import conv_net, conv_weights
 from util import plot_single, plot_save_batch
 
-epochs = 50
-mb_size = 10
+epochs = 15
+mb_size = 4
 
-train_path = os.path.join("data", "train")  # "data/"
+train_path = os.path.join("data", "train")
 test_path = os.path.join("data", "test")
 
 IMAGE_DIM = 128
@@ -56,7 +56,6 @@ truth_filenames_tf = tf.convert_to_tensor(truth_filenames_np)
 
 def get_edges_file(f):
     # Splits at last occurrence of / to get the file name
-    # f = f.decode("utf-8")
     actual_file_name = f.rpartition(os.sep)[2]
     return os.path.join(edges_files_path, actual_file_name)
 
@@ -67,7 +66,7 @@ edges_fnames_tf = tf.convert_to_tensor(edges_fnames)
 
 print("Truth list shape: ", truth_filenames_tf.shape)
 print("Edges list shape: ", edges_fnames_tf.shape)
-
+num_train_data = truth_filenames_tf.shape.as_list()[0]
 
 truth_image_name, edges_image_name = tf.train.slice_input_producer(
     [truth_filenames_tf, edges_fnames_tf], shuffle=False)
@@ -109,9 +108,11 @@ X_sketch = tf.placeholder(
 X_ground_truth = tf.placeholder(
     tf.float32, shape=[mb_size, IMAGE_DIM,
                        IMAGE_DIM, input_nc], name='X_ground_truth')
+X_is_training = tf.placeholder(tf.bool, shape=[], name='X_is_training')
+X_dropout_rate = tf.placeholder(tf.float32, shape=[], name='X_dropout_rate')
 
 # Generate CGAN outputs
-G_sample = generator(X_sketch)
+G_sample = generator(X_sketch, X_is_training)
 D_real, D_logit_real = discriminator(X_ground_truth, X_sketch, D_W, D_b)
 D_fake, D_logit_fake = discriminator(G_sample, X_sketch, D_W, D_b)
 
@@ -142,7 +143,8 @@ G_solver = tf.train.AdamOptimizer().minimize(G_loss, var_list=theta_G)
 if not os.path.exists('out/'):
     os.makedirs('out/')
 
-iter_to_print = 5
+iter_to_print = 1
+mb_to_print = 100
 
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
@@ -156,29 +158,34 @@ with tf.Session() as sess:
         if i % iter_to_print == 0:
             print("Epoch ", i)
 
-        # Get next batch
-        [X_truth_batch, X_edges_batch] = sess.run([truth_images_batch,
-                                                   edges_images_batch])
-        # print(sess.run((D_fake, D_logit_fake)))
+        for mb_idx in range(num_train_data // mb_size):
+            if mb_idx % mb_to_print == 0:
+                print("Batch ", mb_idx)
+
+            # Get next batch
+            [X_truth_batch, X_edges_batch] = sess.run([truth_images_batch,
+                                                       edges_images_batch])
+            # print(sess.run((D_fake, D_logit_fake)))
+
+            # for j in range(3):
+            _, D_loss_curr = sess.run([D_solver, D_loss],
+                                      feed_dict={X_ground_truth: X_truth_batch,
+                                                 X_sketch: X_edges_batch,
+                                                 X_is_training: True,
+                                                 X_dropout_rate: 0.5})
+            _, G_loss_curr = sess.run([G_solver, G_loss],
+                                      feed_dict={X_sketch: X_edges_batch,
+                                                 X_is_training: True,
+                                                 X_dropout_rate: 0.5})
 
         if i % iter_to_print == 0:
             produced_image = sess.run(G_sample, 
-                                  feed_dict={X_sketch: X_edges_batch})
+                                  feed_dict={X_sketch: X_edges_batch,
+                                             X_is_training: False,
+                                             X_dropout_rate: 0.0})
            
             plot_save_batch(produced_image[0:4], i, save_only=True)
 
-
-            
-        # for j in range(3):
-        _, D_loss_curr = sess.run([D_solver, D_loss],
-                                  feed_dict={X_ground_truth: X_truth_batch,
-                                             X_sketch: X_edges_batch})
-        _, G_loss_curr = sess.run([G_solver, G_loss],
-                                  feed_dict={X_ground_truth: X_truth_batch,
-                                             X_sketch: X_edges_batch})
-
-
-        if i % iter_to_print == 0:
             print("D loss: {:.4}".format(D_loss_curr))
             print("G loss: {:.4}".format(G_loss_curr))
         
