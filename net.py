@@ -186,22 +186,6 @@ with tf.Session() as sess:
            
             plot_save_batch(produced_image[0:4], i, save_only=True)
 
-        # print out D probabil
-        # D_real_curr, D_fake_curr = sess.run([tf.reduce_mean(D_real), tf.reduce_mean(D_fake)], 
-        #                           feed_dict={X_ground_truth: X_truth_batch,
-        #                                      X_sketch: X_edges_batch})            
-
-        _, D_loss_curr = sess.run([D_solver, D_loss],
-                                  feed_dict={X_ground_truth: X_truth_batch,
-                                             X_sketch: X_edges_batch})
-        _, G_loss_curr = sess.run([G_solver, G_loss],
-                                  feed_dict={X_ground_truth: X_truth_batch,
-                                             X_sketch: X_edges_batch})
-
-
-
-
-        if i % epoch_to_print == 0:
             print("D loss: {:.4}".format(D_loss_curr))
             print("G loss: {:.4}".format(G_loss_curr))
 
