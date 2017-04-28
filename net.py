@@ -143,7 +143,7 @@ G_solver = tf.train.AdamOptimizer().minimize(G_loss, var_list=theta_G)
 if not os.path.exists('out/'):
     os.makedirs('out/')
 
-iter_to_print = 1
+epoch_to_print = 1
 mb_to_print = 100
 
 with tf.Session() as sess:
@@ -155,7 +155,7 @@ with tf.Session() as sess:
 
     for i in range(epochs):
 
-        if i % iter_to_print == 0:
+        if i % epoch_to_print == 0:
             print("Epoch ", i)
 
         for mb_idx in range(num_train_data // mb_size):
@@ -178,7 +178,7 @@ with tf.Session() as sess:
                                                  X_is_training: True,
                                                  X_dropout_rate: 0.5})
 
-        if i % iter_to_print == 0:
+        if i % epoch_to_print == 0:
             produced_image = sess.run(G_sample, 
                                   feed_dict={X_sketch: X_edges_batch,
                                              X_is_training: False,
@@ -201,7 +201,7 @@ with tf.Session() as sess:
 
 
 
-        if i % iter_to_print == 0:
+        if i % epoch_to_print == 0:
             print("D loss: {:.4}".format(D_loss_curr))
             print("G loss: {:.4}".format(G_loss_curr))
 
