@@ -112,7 +112,8 @@ X_is_training = tf.placeholder(tf.bool, shape=[], name='X_is_training')
 X_dropout_rate = tf.placeholder(tf.float32, shape=[], name='X_dropout_rate')
 
 # Generate CGAN outputs
-G_sample = generator(X_sketch, X_is_training)
+G_sample = generator(X_sketch, X_is_training, X_dropout_rate)
+# X_is_training = tf.Print(X_is_training, [X_is_training], "X is training: ")
 D_real, D_logit_real = discriminator(X_ground_truth, X_sketch, D_W, D_b,
                                      X_is_training)
 D_fake, D_logit_fake = discriminator(G_sample, X_sketch, D_W, D_b,
@@ -130,6 +131,7 @@ D_loss_real = tf.reduce_mean(
 D_loss_fake = tf.reduce_mean(
     tf.nn.sigmoid_cross_entropy_with_logits(
         logits=D_logit_fake, labels=tf.zeros_like(D_logit_fake)))
+
 D_loss = D_loss_real + D_loss_fake
 lmbda = 1  # fix scaling
 G_loss = tf.reduce_mean(
@@ -184,7 +186,7 @@ with tf.Session() as sess:
             produced_image = sess.run(G_sample,
                                   feed_dict={X_sketch: X_edges_batch,
                                              X_is_training: False,
-                                             X_dropout_rate: 0.0})
+                                             X_dropout_rate: 1.0})
 
             plot_save_batch(produced_image[0:4], i, save_only=True)
 

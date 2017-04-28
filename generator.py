@@ -36,7 +36,8 @@ def up_conv(x, kernels, bias, stride=2):
     x = tf.nn.conv2d_transpose(x, kernels, out_shape, strides, 'SAME')
     return tf.nn.bias_add(x, bias)
 
-def dropout(x, rate=0.5):
+def dropout(x, rate):
+    # rate = tf.Print(rate, [rate])
     return tf.nn.dropout(x, rate)
 
 def relu(x):
@@ -123,7 +124,7 @@ class Generator(object):
 
 
     # Evaluate network given input
-    def __call__(self, x, is_training=True, dropout_rate=0.5):
+    def __call__(self, x, is_training, dropout_rate):
         x = tf.reshape(x, [-1, 128, 128, 1])
         w, b = self.w, self.b
 
