@@ -82,7 +82,7 @@ print("Edges list shape: ", edges_fnames_tf.shape)
 num_train_data = truth_filenames_tf.shape.as_list()[0]
 
 truth_image_name, edges_image_name = tf.train.slice_input_producer(
-    [truth_filenames_tf, edges_fnames_tf], shuffle=False)
+    [truth_filenames_tf, edges_fnames_tf], shuffle=True)
 
 value_truth_imgfile = tf.read_file(truth_image_name)
 
@@ -105,14 +105,18 @@ edges_image = edges_image/255.0
 min_queue_examples = epochs*mb_size
 num_threads = 4
 # Background thread to batch images
-[truth_images_batch, edges_images_batch] = tf.train.shuffle_batch(
-    [truth_image, edges_image],  # image_tensor
-    batch_size=mb_size,
-    capacity=min_queue_examples + num_threads*mb_size,
-    min_after_dequeue=min_queue_examples,
-    # shapes=([IMAGE_DIM, IMAGE_DIM, input_nc]),
-    num_threads=num_threads,
-    allow_smaller_final_batch=True)
+# [truth_images_batch, edges_images_batch] = tf.train.shuffle_batch(
+    # [truth_image, edges_image],  # image_tensor
+    # batch_size=mb_size,
+    # capacity=min_queue_examples + num_threads*mb_size,
+    # min_after_dequeue=min_queue_examples,
+    # # shapes=([IMAGE_DIM, IMAGE_DIM, input_nc]),
+    # num_threads=num_threads,
+    # allow_smaller_final_batch=True)
+
+[truth_images_batch, edges_images_batch] = tf.train.batch(
+        [truth_image, edges_image],
+        batch_size=mb_size)
 
 print("Batch shape ", truth_images_batch.shape)
 
@@ -184,6 +188,7 @@ with tf.Session() as sess:
             # Get next batch
             [X_truth_batch, X_edges_batch] = sess.run([truth_images_batch,
                                                        edges_images_batch])
+
             # print(sess.run((D_fake, D_logit_fake)))
 
             # for j in range(3):
