@@ -3,3 +3,5 @@ data/
 sample_data/
 *.pyc
 out/
+MNIST_data/
+download.tar.gz

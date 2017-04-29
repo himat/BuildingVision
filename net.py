@@ -203,6 +203,14 @@ with tf.Session() as sess:
                                                  X_is_training: True,
                                                  X_dropout_rate: 0.5})
 
+            if mb_idx % 10 == 0:
+                produced_image = sess.run(G_sample,
+                                      feed_dict={X_sketch: X_edges_batch,
+                                                 X_is_training: False,
+                                                 X_dropout_rate: 1.0})
+                plot_save_batch(produced_image[0:4], mb_idx, save_only=True,
+                                prefix=(str(i)+"e"))
+
         if i % epoch_to_print == 0:
             produced_image = sess.run(G_sample,
                                   feed_dict={X_sketch: X_edges_batch,

@@ -12,10 +12,10 @@ def plot_single(image):
     if image.shape[2] == 1:
         image = image.squeeze()
     plt.imshow(image, cmap="Greys_r")
-    plt.show() 
+    plt.show()
 
 # Plots a batch of images and optionally saves to disk
-def plot_save_batch(batch, iter_num, save_only=False):
+def plot_save_batch(batch, iter_num, save_only=False, prefix=""):
     (mb_size, width, height, channels) = batch.shape
 
     sqrt = math.sqrt(mb_size)
@@ -40,9 +40,9 @@ def plot_save_batch(batch, iter_num, save_only=False):
 
         plt.imshow(sample, cmap="Greys_r")
 
-    if save_only:        
-        plt.savefig(os.path.join(output_dir, str(iter_num).zfill(3)+".png"), bbox_inches='tight')
+    if save_only:
+        plt.savefig(os.path.join(output_dir, prefix+str(iter_num).zfill(3)+".png"), bbox_inches='tight')
         plt.close(fig)
     else:
-        plt.show() 
+        plt.show()
 
