@@ -205,5 +205,5 @@ def test_discriminator():
             test()
 
 
-if __name__ == "__main__":
-    test_discriminator()
+# if __name__ == "__main__":
+#     test_discriminator()
