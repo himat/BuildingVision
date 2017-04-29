@@ -133,7 +133,7 @@ D_fake, D_logit_fake = discriminator(G_sample, X_sketch, D_W, D_b,
                                      X_is_training)
 
 # Calculate CGAN (classic) losses
-l1_weight = 0.5 #100.0
+l1_weight = 0.0 #100.0
 D_loss = tf.reduce_mean(-(tf.log(D_real + EPS) + tf.log(1. - D_fake + EPS)))
 G_L1_loss = tf.reduce_mean(tf.abs(X_ground_truth - G_sample))
 G_loss = tf.reduce_mean(-tf.log(D_fake + EPS)) + G_L1_loss*l1_weight
