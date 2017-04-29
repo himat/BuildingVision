@@ -23,7 +23,8 @@ def batchNorm(x, decay=0.99, is_training=True):
         is_training=is_training, updates_collections=None)
 
 def leakyRelu(x, alpha=0.2):
-    return tf.maximum(x * alpha, x)
+    # return tf.maximum(x * alpha, x)
+    return (0.5 * (1 + alpha)) * x + (0.5 * (1 - alpha)) * tf.abs(x)
 
 def up_conv(x, kernels, bias, stride=2):
     in_shape = x.shape.as_list()
