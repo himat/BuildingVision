@@ -16,7 +16,7 @@ def bias(filters):
 def conv(x, kernels, bias, stride=2):
     strides = [1, stride, stride, 1]
     x = tf.nn.conv2d(x, kernels, strides, 'SAME')
-    return tf.nn.bias_add(x, bias)
+    return x #tf.nn.bias_add(x, bias)
 
 def batchNorm(x, decay=0.99, is_training=True):
     return tf.contrib.layers.batch_norm(x, decay=decay,
@@ -34,7 +34,7 @@ def up_conv(x, kernels, bias, stride=2):
 
     strides = [1, stride, stride, 1]
     x = tf.nn.conv2d_transpose(x, kernels, out_shape, strides, 'SAME')
-    return tf.nn.bias_add(x, bias)
+    return x #tf.nn.bias_add(x, bias)
 
 def dropout(x, rate):
     # rate = tf.Print(rate, [rate])
