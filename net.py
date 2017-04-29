@@ -9,6 +9,7 @@ from util import plot_single, plot_save_batch
 
 epochs = 15
 mb_size = 4
+EPS = 1e-12
 
 train_path = os.path.join("data", "train")
 test_path = os.path.join("data", "test")
@@ -46,7 +47,7 @@ edges_files = os.path.join(edges_files_path, "*" + filetype)
 
 truth_filenames_tf = tf.train.match_filenames_once(ground_truth_files)
 
-print(ground_truth_files)
+print("Reading file from: ", ground_truth_files)
 truth_filenames_np = glob.glob(ground_truth_files)
 
 
@@ -120,25 +121,27 @@ D_fake, D_logit_fake = discriminator(G_sample, X_sketch, D_W, D_b,
                                      X_is_training)
 
 # Calculate CGAN (classic) losses
-# D_loss = -tf.reduce_mean(tf.log(D_real) + tf.log(1. - D_fake))
-# G_loss = -tf.reduce_mean(tf.log(D_fake)) #+ tf.reduce_mean(X_ground_truth - G_sample)
+l1_weight = 100.0
+D_loss = tf.reduce_mean(-(tf.log(D_real + EPS) + tf.log(1. - D_fake + EPS)))
+G_L1_loss = tf.reduce_mean(tf.abs(X_ground_truth - G_sample))
+G_loss = tf.reduce_mean(-tf.log(D_fake + EPS)) + G_L1_loss*l1_weight
 
 
 # Calculate CGAN (alternative) losses
-D_loss_real = tf.reduce_mean(
-    tf.nn.sigmoid_cross_entropy_with_logits(
-        logits=D_logit_real, labels=tf.ones_like(D_logit_real)))
-D_loss_fake = tf.reduce_mean(
-    tf.nn.sigmoid_cross_entropy_with_logits(
-        logits=D_logit_fake, labels=tf.zeros_like(D_logit_fake)))
+# D_loss_real = tf.reduce_mean(
+    # tf.nn.sigmoid_cross_entropy_with_logits(
+        # logits=D_logit_real, labels=tf.ones_like(D_logit_real)))
+# D_loss_fake = tf.reduce_mean(
+    # tf.nn.sigmoid_cross_entropy_with_logits(
+        # logits=D_logit_fake, labels=tf.zeros_like(D_logit_fake)))
 
-D_loss = D_loss_real + D_loss_fake
-lmbda = 1  # fix scaling
-G_loss = tf.reduce_mean(
-    tf.nn.sigmoid_cross_entropy_with_logits(
-        logits=D_logit_fake,
-        labels=tf.ones_like(D_logit_fake))) #+ lmbda*tf.reduce_mean(
-            #X_ground_truth - G_sample)
+# D_loss = D_loss_real + D_loss_fake
+# lmbda = 1  # fix scaling
+# G_loss = tf.reduce_mean(
+    # tf.nn.sigmoid_cross_entropy_with_logits(
+        # logits=D_logit_fake,
+        # labels=tf.ones_like(D_logit_fake))) #+ lmbda*tf.reduce_mean(
+            # #X_ground_truth - G_sample)
 
 # Apply an optimizer to minimize the above loss functions
 D_solver = tf.train.AdamOptimizer().minimize(D_loss, var_list=theta_D)
@@ -178,7 +181,8 @@ with tf.Session() as sess:
                                                  X_is_training: True,
                                                  X_dropout_rate: 0.5})
             _, G_loss_curr = sess.run([G_solver, G_loss],
-                                      feed_dict={X_sketch: X_edges_batch,
+                                      feed_dict={X_ground_truth: X_truth_batch,
+                                                 X_sketch: X_edges_batch,
                                                  X_is_training: True,
                                                  X_dropout_rate: 0.5})
 
