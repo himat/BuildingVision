@@ -2,17 +2,29 @@ import tensorflow as tf
 import numpy as np
 import os
 import glob
+import argparse
 
 from generator import Generator
 from discriminator import conv_net, conv_weights
 from util import plot_single, plot_save_batch
 
-epochs = 15
-mb_size = 4
 EPS = 1e-12
 
-train_path = os.path.join("data", "train")
-test_path = os.path.join("data", "test")
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--input_dir", required=True, help="base directory name that contains the images")
+parser.add_argument("--num_epochs", type=int, default=15, help="how many epochs to run for")
+parser.add_argument("--mb_size", type=int, default=4, help="minibatch size")
+parser.add_argument("--mb_to_print", type=int, default=100, help="how often to print in an epoch")
+
+OPTIONS = parser.parse_args()
+
+input_dir = OPTIONS.input_dir
+train_path = os.path.join(input_dir, "train")
+test_path = os.path.join(input_dir, "test")
+
+epochs = OPTIONS.num_epochs
+mb_size = OPTIONS.mb_size
 
 IMAGE_DIM = 128
 IMAGE_SIZE = 16384  # 128 x 128
@@ -121,7 +133,7 @@ D_fake, D_logit_fake = discriminator(G_sample, X_sketch, D_W, D_b,
                                      X_is_training)
 
 # Calculate CGAN (classic) losses
-l1_weight = 100.0
+l1_weight = 0.5 #100.0
 D_loss = tf.reduce_mean(-(tf.log(D_real + EPS) + tf.log(1. - D_fake + EPS)))
 G_L1_loss = tf.reduce_mean(tf.abs(X_ground_truth - G_sample))
 G_loss = tf.reduce_mean(-tf.log(D_fake + EPS)) + G_L1_loss*l1_weight
@@ -151,7 +163,7 @@ if not os.path.exists('out/'):
     os.makedirs('out/')
 
 epoch_to_print = 1
-mb_to_print = 100
+mb_to_print = OPTIONS.mb_to_print
 
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
