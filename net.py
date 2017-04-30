@@ -51,6 +51,9 @@ def discriminator(color, sketch, W, b, bn, is_training):
 generator = Generator()
 theta_G = generator.weights
 
+print("theta_D: ", theta_D)
+print("theta_G: ", theta_G)
+
 
 dir = os.path.dirname(os.path.realpath(__file__))
 
