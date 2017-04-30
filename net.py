@@ -42,7 +42,7 @@ theta_D = list(D_W.values()) + list(D_b.values())
 def discriminator(color, sketch, W, b, is_training):
     sketch = tf.reshape(sketch, [-1, 128, 128, 1])
     color = tf.reshape(color, [-1, 128, 128, 3])
-    y = tf.concat([color, sketch], axis=3)
+    y = tf.concat([sketch, color], axis=3)
     return conv_net(y, (W, b), is_training=is_training)
 
 # Generator Model

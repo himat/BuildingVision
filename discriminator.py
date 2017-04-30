@@ -37,7 +37,7 @@ def batchnorm(input):
 
 def conv(x, W, b, strides=2, decay=0.99, is_training=True):
     x = tf.nn.conv2d(x, W, strides=[1, strides, strides, 1], padding='SAME')
-    x = tf.nn.bias_add(x, b)
+    # x = tf.nn.bias_add(x, b)
     x = lrelu(x, a=0.2)
     mean, variance = tf.nn.moments(x, axes=[0, 1, 2], keep_dims=False)
     x = tf.nn.batch_normalization(x, mean, variance, None, None,
@@ -95,8 +95,8 @@ def conv_weights():
     return (weights, biases)
 
 
-def conv_net(x, vars, is_training=True):
-    weights, biases = vars
+def conv_net(x, vars_wb, is_training=True):
+    weights, biases = vars_wb
     x = tf.reshape(x, shape=[-1, 128, 128, 4])
 
     c1 = conv(x, weights['c1'], biases['c1'],
