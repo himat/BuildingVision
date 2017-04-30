@@ -13,10 +13,10 @@ EPS = 1e-12
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--input_dir", required=True, help="base directory name that contains the images")
-parser.add_argument("--num_epochs", type=int, default=15, help="how many epochs to run for")
-parser.add_argument("--mb_size", type=int, default=4, help="minibatch size")
+parser.add_argument("--num_epochs", type=int, default=115, help="how many epochs to run for")
+parser.add_argument("--mb_size", type=int, default=9, help="minibatch size")
 parser.add_argument("--mb_to_print", type=int, default=100, help="how often to print in an epoch")
-parser.add_argument("--mb_to_save", type=int, default=50, help="how often to save the output")
+parser.add_argument("--mb_to_save", type=int, default=200, help="how often to save the output")
 parser.add_argument("--l1_weight", type=float, default=0.4, help="l1_weight")
 
 OPTIONS = parser.parse_args()
@@ -130,7 +130,9 @@ num_threads = 4
 
 [truth_images_batch, edges_images_batch] = tf.train.batch(
         [truth_image, edges_image],
-        batch_size=mb_size)
+        batch_size=mb_size,
+	capacity=10000,
+	num_threads=mb_size)
 
 print("Batch shape ", truth_images_batch.shape)
 
