@@ -184,8 +184,6 @@ with tf.Session() as sess:
             print("Epoch ", i)
 
         for mb_idx in range(num_train_data // mb_size):
-            if mb_idx % mb_to_print == 0:
-                print("Batch ", mb_idx)
 
             # Get next batch
             [X_truth_batch, X_edges_batch] = sess.run([truth_images_batch,
@@ -204,6 +202,11 @@ with tf.Session() as sess:
                                                  X_sketch: X_edges_batch,
                                                  X_is_training: True,
                                                  X_dropout_rate: 0.5})
+
+            if mb_idx % mb_to_print == 0:
+                print("Batch ", mb_idx)
+                print("D loss: {:.4}".format(D_loss_curr))
+                print("G loss: {:.4}".format(G_loss_curr))
 
             if mb_idx % 50 == 0:
                 produced_image = sess.run(G_sample,
