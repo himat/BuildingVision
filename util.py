@@ -8,11 +8,20 @@ import matplotlib.gridspec as gridspec
 output_dir = "out"
 
 # Uses pyplot to display the passed in image
-def plot_single(image):
+def plot_save_single(image, save_only=False, name=None):
     if image.shape[2] == 1:
         image = image.squeeze()
     plt.imshow(image, cmap="Greys_r")
-    plt.show()
+
+    if save_only:
+        if name == None:
+            raise ValueError("Need a name for saving image to disk")
+
+        save_name = os.path.join(output_dir, name)
+        plt.savefig(save_name, bbox_inces='tight')
+        plt.close()
+    else:
+        plt.show()
 
 # Plots a batch of images and optionally saves to disk
 def plot_save_batch(batch, iter_num, save_only=False, prefix=""):
