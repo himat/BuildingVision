@@ -215,13 +215,13 @@ with tf.Session() as sess:
                 print("D loss: {:.4}".format(D_loss_curr))
                 print("G loss: {:.4}".format(G_loss_curr))
 
-            if mb_idx % 50 == 0:
-                produced_image = sess.run(G_sample,
-                                      feed_dict={X_sketch: X_edges_batch,
-                                                 X_is_training: False,
-                                                 X_dropout_rate: 1.0})
-                plot_save_batch(produced_image[0:4], mb_idx, save_only=True,
-                                prefix=(str(i)+"e"))
+            # if mb_idx % 50 == 0:
+                # produced_image = sess.run(G_sample,
+                                      # feed_dict={X_sketch: X_edges_batch,
+                                                 # X_is_training: False,
+                                                 # X_dropout_rate: 1.0})
+                # plot_save_batch(produced_image[0:4], mb_idx, save_only=True,
+                                # prefix=(str(i)+"e"))
 
         if i % epoch_to_print == 0:
             produced_image = sess.run(G_sample,
