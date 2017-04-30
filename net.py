@@ -33,10 +33,18 @@ input_nc = 3  # number of input image channels
 print("Epochs: ", epochs)
 print("Minibatch size: ", mb_size)
 
+
+# general helper functions
+def flatten(l):
+    for i in l:
+        for j in i:
+            yield j
+
+
 # Discriminator Model
 D_W, D_b, D_bn = conv_weights()
 theta_D = (list(D_W.values()) + list(D_b.values()) +
-           [x[0] for x in D_bn.values()] + [x[1] for x in D_bn.values()])
+           list(flatten(D_bn.values())))
 
 
 def discriminator(color, sketch, W, b, bn, is_training):
