@@ -15,8 +15,10 @@ def lrelu(x, a=0.2):
 
 
 def batchnorm_vars(channels):
-    scale = tf.Variable(tf.random_normal([channels], stddev=0.02))
-    offset = tf.Variable(tf.zeros([channels]))
+    #scale = tf.Variable(tf.random_normal([channels], stddev=0.02))
+    #offset = tf.Variable(tf.zeros([channels]))
+    scale = tf.get_variable("scale", [channels], dtype=tf.float32,initializer=tf.random_normal_initializer(1.0,0.02))
+    offset = tf.get_variable("offset", [channels], dtype=tf.float32, initializer=tf.zeros_initializer())
     return (offset, scale)
 
 
@@ -89,16 +91,32 @@ def conv_weights():
         'c7': bias(1),
     }
 
-    batch_vars = {
-        'c1': batchnorm_vars(64),
-        'c2': batchnorm_vars(128),
-        'c3': batchnorm_vars(256),
-        'c4': batchnorm_vars(512),
-        'c5': batchnorm_vars(512),
-        'c6': batchnorm_vars(512),
-        'c7': batchnorm_vars(1),
-    }
-
+    batch_vars = {}
+    for i in range(1, 8):
+	    with tf.variable_scope("batchvars" + str(i)):
+                if i == 1:
+                    bv_num = 64
+                elif i == 2:
+                    bv_num = 128
+                elif i == 3:
+                    bv_num = 256
+                elif i == 7:
+                    bv_num = 1
+                else:
+                    bv_num = 512
+	 
+                bv_result = batchnorm_vars(bv_num)
+                batch_vars["c"+str(i)] = bv_result	
+   # batch_vars = {
+   #     'c1': batchnorm_vars(64),
+   #     'c2': batchnorm_vars(128),
+   #     'c3': batchnorm_vars(256),
+   #     'c4': batchnorm_vars(512),
+   #     'c5': batchnorm_vars(512),
+   #     'c6': batchnorm_vars(512),
+   #     'c7': batchnorm_vars(1),
+   # }
+    print(batch_vars.keys())
     return (weights, biases, batch_vars)
 
 
