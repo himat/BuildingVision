@@ -13,11 +13,14 @@ EPS = 1e-12
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--input_dir", required=True, help="base directory name that contains the images")
+parser.add_argument("--save_dir", required=True, help="directory to save network variables")
 parser.add_argument("--num_epochs", type=int, default=15, help="how many epochs to run for")
 parser.add_argument("--mb_size", type=int, default=4, help="minibatch size")
 parser.add_argument("--mb_to_print", type=int, default=100, help="how often to print in an epoch")
 parser.add_argument("--mb_to_save", type=int, default=50, help="how often to save the output")
 parser.add_argument("--l1_weight", type=float, default=0.4, help="l1_weight")
+parser.add_argument("--epoch_to_save", type=int, default=5, help="how often to save network variables")
+
 
 OPTIONS = parser.parse_args()
 
@@ -29,6 +32,8 @@ epochs = OPTIONS.num_epochs
 mb_size = OPTIONS.mb_size
 mb_to_save = OPTIONS.mb_to_save
 l1_weight = OPTIONS.l1_weight
+epoch_to_save = OPTIONS.epoch_to_save
+save_dir = OPTIONS.save_dir
 
 IMAGE_DIM = 128
 IMAGE_SIZE = 16384  # 128 x 128
@@ -61,6 +66,10 @@ def discriminator(color, sketch, W, b, bn, is_training):
 # Generator Model
 generator = Generator()
 theta_G = generator.weights
+
+
+# Initialize variable saving
+saver = tf.train.Saver(max_to_keep=1)
 
 
 dir = os.path.dirname(os.path.realpath(__file__))
@@ -185,6 +194,11 @@ mb_to_print = OPTIONS.mb_to_print
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
 
+    # Restore variables
+    if os.path.isfile(os.path.join(save_dir, "model.meta")):
+        saver.restore(sess, tf.train.latest_checkpoint(save_dir))
+        print("Variables restored from save file")
+
     # Starts background threads for image reading
     coord = tf.train.Coordinator()
     threads = tf.train.start_queue_runners(coord=coord)
@@ -226,16 +240,15 @@ with tf.Session() as sess:
         if i % epoch_to_print == 0:
             produced_image = sess.run(G_test,
                                   feed_dict={X_sketch: X_edges_batch})
-
             plot_save_batch(produced_image[0:4], i, save_only=True)
-
             print("D loss: {:.4}".format(D_loss_curr))
             print("G loss: {:.4}".format(G_loss_curr))
-
             # print("D_real: {:.4}".format(D_real_curr))
             # print("D_fake: {:.4}".format(D_fake_curr))
-
             print()
+
+        if i % epoch_to_save == 0:
+            saver.save(sess, os.path.join(save_dir, "model"))
 
     # Stops background threads
     coord.request_stop()
