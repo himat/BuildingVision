@@ -14,19 +14,19 @@ def lrelu(x, a=0.2):
         return (0.5 * (1 + a)) * x + (0.5 * (1 - a)) * tf.abs(x)
 
 
-def batchnorm(input):
+def batchnorm_vars(channels):
+    scale = tf.Variable(tf.random_normal([channels], stddev=0.02))
+    offset = tf.Variable(tf.zeros([channels]))
+    return (offset, scale)
+
+
+def batchnorm(input, batch_norm_vars):
     with tf.variable_scope("batchnorm"):
         # this block looks like it has 3 inputs on the graph unless we do this
         input = tf.identity(input)
 
         channels = input.get_shape()[3]
-        offset = tf.get_variable("offset", [channels],
-                                 dtype=tf.float32,
-                                 initializer=tf.zeros_initializer())
-        scale = tf.get_variable("scale", [channels],
-                                dtype=tf.float32,
-                                initializer=tf.random_normal_initializer(1.0,
-                                                                         0.02))
+        offset, scale = batch_norm_vars
         mean, variance = tf.nn.moments(input, axes=[0, 1, 2], keep_dims=False)
         variance_e = 1e-5
         normalized = tf.nn.batch_normalization(input, mean,
@@ -35,16 +35,12 @@ def batchnorm(input):
         return normalized
 
 
-def conv(x, W, b, strides=2, decay=0.99, is_training=True):
-    x = tf.nn.conv2d(x, W, strides=[1, strides, strides, 1], padding='SAME')
-    x = tf.nn.bias_add(x, b)
-    x = lrelu(x, a=0.2)
-    mean, variance = tf.nn.moments(x, axes=[0, 1, 2], keep_dims=False)
-    x = tf.nn.batch_normalization(x, mean, variance, None, None,
-                                  variance_epsilon=1e-5)
-    # x = batch_norm(x, decay=decay, is_training=is_training,
-    #                updates_collections=None)
-    # x = batchnorm(x)
+def conv(x, id, W, b, bv, strides=2, decay=0.99, is_training=True):
+    with tf.variable_scope("conv" + str(id)):
+        x = tf.nn.conv2d(x, W, strides=[1, strides, strides, 1], padding='SAME')
+        x = tf.nn.bias_add(x, b)
+        x = lrelu(x, a=0.2)
+        x = batchnorm(x, bv)
     return x
 
 
@@ -92,32 +88,43 @@ def conv_weights():
         'c6': bias(512),
         'c7': bias(1),
     }
-    return (weights, biases)
+
+    batch_vars = {
+        'c1': batchnorm_vars(64),
+        'c2': batchnorm_vars(128),
+        'c3': batchnorm_vars(256),
+        'c4': batchnorm_vars(512),
+        'c5': batchnorm_vars(512),
+        'c6': batchnorm_vars(512),
+        'c7': batchnorm_vars(1),
+    }
+
+    return (weights, biases, batch_vars)
 
 
 def conv_net(x, vars, is_training=True):
-    weights, biases = vars
+    weights, biases, batch_vars = vars
     x = tf.reshape(x, shape=[-1, 128, 128, 4])
 
-    c1 = conv(x, weights['c1'], biases['c1'],
+    c1 = conv(x, 1, weights['c1'], biases['c1'], batch_vars['c1'],
               is_training=is_training, strides=2)
 
-    c2 = conv(c1, weights['c2'], biases['c2'],
+    c2 = conv(c1, 2, weights['c2'], biases['c2'], batch_vars['c2'],
               is_training=is_training, strides=2)
 
-    c3 = conv(c2, weights['c3'], biases['c3'],
+    c3 = conv(c2, 3, weights['c3'], biases['c3'], batch_vars['c3'],
               is_training=is_training, strides=2)
 
-    c4 = conv(c3, weights['c4'], biases['c4'],
+    c4 = conv(c3, 4, weights['c4'], biases['c4'], batch_vars['c4'],
               is_training=is_training, strides=2)
 
-    c5 = conv(c4, weights['c5'], biases['c5'],
+    c5 = conv(c4, 5, weights['c5'], biases['c5'], batch_vars['c5'],
               is_training=is_training, strides=2)
 
-    c6 = conv(c5, weights['c6'], biases['c6'],
+    c6 = conv(c5, 6, weights['c6'], biases['c6'], batch_vars['c6'],
               is_training=is_training, strides=2)
 
-    c7 = conv(c6, weights['c7'], biases['c7'],
+    c7 = conv(c6, 7, weights['c7'], biases['c7'], batch_vars['c7'],
               is_training=is_training, strides=2)
 
     res = tf.reshape(c7, [-1, 1])
@@ -153,16 +160,22 @@ def test_discriminator():
         'd2': bias(10),
     }
 
+    batch_vars = {
+        'c1': batchnorm_vars(32),
+        'c2': batchnorm_vars(128),
+        'c3': batchnorm_vars(256),
+    }
+
     x = tf.placeholder(tf.float32, [None, 784], name='x')
     y = tf.placeholder(tf.float32, [None, n_classes], name='y')
 
     v = tf.reshape(x, shape=[-1, 28, 28, 1])
 
-    c1 = conv(v, weights['c1'], biases['c1'], strides=2)
+    c1 = conv(v, 1, weights['c1'], biases['c1'], batch_vars['c1'], strides=2)
 
-    c2 = conv(c1, weights['c2'], biases['c2'], strides=2)
+    c2 = conv(c1, 2, weights['c2'], biases['c2'], batch_vars['c2'], strides=2)
 
-    c3 = conv(c2, weights['c3'], biases['c3'], strides=2)
+    c3 = conv(c2, 3, weights['c3'], biases['c3'], batch_vars['c3'], strides=2)
 
     shape = weights['d1'].get_shape().as_list()[0]
     print(shape)

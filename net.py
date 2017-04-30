@@ -34,15 +34,17 @@ print("Epochs: ", epochs)
 print("Minibatch size: ", mb_size)
 
 # Discriminator Model
-D_W, D_b = conv_weights()
-theta_D = list(D_W.values()) + list(D_b.values())
+D_W, D_b, D_bn = conv_weights()
+theta_D = (list(D_W.values()) + list(D_b.values()) +
+           [x[0] for x in D_bn.values()] + [x[1] for x in D_bn.values()])
 
 
-def discriminator(color, sketch, W, b, is_training):
+def discriminator(color, sketch, W, b, bn, is_training):
     sketch = tf.reshape(sketch, [-1, 128, 128, 1])
     color = tf.reshape(color, [-1, 128, 128, 3])
     y = tf.concat([color, sketch], axis=3)
-    return conv_net(y, (W, b), is_training=is_training)
+    return conv_net(y, (W, b, bn), is_training=is_training)
+
 
 # Generator Model
 generator = Generator()
@@ -131,9 +133,9 @@ X_dropout_rate = tf.placeholder(tf.float32, shape=[], name='X_dropout_rate')
 # Generate CGAN outputs
 G_sample = generator(X_sketch, X_is_training, X_dropout_rate)
 # X_is_training = tf.Print(X_is_training, [X_is_training], "X is training: ")
-D_real, D_logit_real = discriminator(X_ground_truth, X_sketch, D_W, D_b,
+D_real, D_logit_real = discriminator(X_ground_truth, X_sketch, D_W, D_b, D_bn,
                                      X_is_training)
-D_fake, D_logit_fake = discriminator(G_sample, X_sketch, D_W, D_b,
+D_fake, D_logit_fake = discriminator(G_sample, X_sketch, D_W, D_b, D_bn,
                                      X_is_training)
 
 # Calculate CGAN (classic) losses
