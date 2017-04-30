@@ -14,10 +14,10 @@ EPS = 1e-12
 parser = argparse.ArgumentParser()
 parser.add_argument("--input_dir", required=True, help="base directory name that contains the images")
 parser.add_argument("--save_dir", required=True, help="directory to save network variables")
-parser.add_argument("--num_epochs", type=int, default=15, help="how many epochs to run for")
-parser.add_argument("--mb_size", type=int, default=4, help="minibatch size")
+parser.add_argument("--num_epochs", type=int, default=115, help="how many epochs to run for")
+parser.add_argument("--mb_size", type=int, default=9, help="minibatch size")
 parser.add_argument("--mb_to_print", type=int, default=100, help="how often to print in an epoch")
-parser.add_argument("--mb_to_save", type=int, default=50, help="how often to save the output")
+parser.add_argument("--mb_to_save", type=int, default=200, help="how often to save the output")
 parser.add_argument("--l1_weight", type=float, default=0.4, help="l1_weight")
 parser.add_argument("--epoch_to_save", type=int, default=5, help="how often to save network variables")
 
@@ -139,7 +139,9 @@ num_threads = 4
 
 [truth_images_batch, edges_images_batch] = tf.train.batch(
         [truth_image, edges_image],
-        batch_size=mb_size)
+        batch_size=mb_size,
+	capacity=100,
+	num_threads=mb_size)
 
 print("Batch shape ", truth_images_batch.shape)
 
@@ -231,7 +233,7 @@ with tf.Session() as sess:
                 print("D loss: {:.8}".format(D_loss_curr))
                 print("G loss: {:.8}".format(G_loss_curr))
 
-            if mb_idx % mb_to_save == 0:
+            if (not mb_to_save == 0) and mb_idx % mb_to_save == 0:
                 produced_image = sess.run(G_test,
                                       feed_dict={X_sketch: X_edges_batch})
                 plot_save_batch(produced_image[0:4], mb_idx, save_only=True,
