@@ -177,7 +177,11 @@ class Generator(object):
             batchnorm_vars(64),
         ]
 
-        self.weights = self.w + self.b + self.p + self.n
+        self.weights = (self.w + self.b
+                        + [x[1] for x in self.p]
+                        + [x[0] for x in self.p]
+                        + [x[1] for x in self.n]
+                        + [x[0] for x in self.n])
 
 
     # Evaluate network given input
