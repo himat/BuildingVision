@@ -16,6 +16,7 @@ parser.add_argument("--input_dir", required=True, help="base directory name that
 parser.add_argument("--num_epochs", type=int, default=15, help="how many epochs to run for")
 parser.add_argument("--mb_size", type=int, default=4, help="minibatch size")
 parser.add_argument("--mb_to_print", type=int, default=100, help="how often to print in an epoch")
+parser.add_argument("--mb_to_save", type=int, default=50, help="how often to save the output")
 
 OPTIONS = parser.parse_args()
 
@@ -25,6 +26,7 @@ test_path = os.path.join(input_dir, "test")
 
 epochs = OPTIONS.num_epochs
 mb_size = OPTIONS.mb_size
+mb_to_save = OPTIONS.mb_to_save
 
 IMAGE_DIM = 128
 IMAGE_SIZE = 16384  # 128 x 128
@@ -213,7 +215,7 @@ with tf.Session() as sess:
                 print("D loss: {:.4}".format(D_loss_curr))
                 print("G loss: {:.4}".format(G_loss_curr))
 
-            if mb_idx % 50 == 0:
+            if mb_idx % mb_to_save == 0:
                 produced_image = sess.run(G_test,
                                       feed_dict={X_sketch: X_edges_batch})
                 plot_save_batch(produced_image[0:4], mb_idx, save_only=True,
