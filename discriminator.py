@@ -61,8 +61,8 @@ def dense(x, W, b):
 
 def filters(input, output, shape=(4, 4)):
     (s1, s2) = shape
-    return tf.Variable(tf.random_normal([s1, s2, input, output], stddev=0.02))
-
+    ret = tf.Variable(tf.random_normal([s1, s2, input, output], stddev=0.02))
+    return ret
 
 def bias(shape):
     return tf.Variable(tf.random_normal([shape], stddev=0.02))

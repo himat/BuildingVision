@@ -173,6 +173,9 @@ mb_to_print = OPTIONS.mb_to_print
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
 
+    # li = [v.name for v in tf.trainable_variables()]
+    # print li
+
     # Starts background threads for image reading
     coord = tf.train.Coordinator()
     threads = tf.train.start_queue_runners(coord=coord)
