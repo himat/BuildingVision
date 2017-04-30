@@ -212,8 +212,8 @@ with tf.Session() as sess:
 
             if mb_idx % mb_to_print == 0:
                 print("Batch ", mb_idx)
-                print("D loss: {:.4}".format(D_loss_curr))
-                print("G loss: {:.4}".format(G_loss_curr))
+                print("D loss: {:.8}".format(D_loss_curr))
+                print("G loss: {:.8}".format(G_loss_curr))
 
             if mb_idx % mb_to_save == 0:
                 produced_image = sess.run(G_test,

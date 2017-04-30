@@ -1,5 +1,4 @@
 import tensorflow as tf
-from tensorflow.contrib.layers import batch_norm
 
 
 # general helper functions
@@ -33,8 +32,7 @@ def batchnorm_vars(channels):
 
 # layers
 def lrelu(x, a=0.2):
-    with tf.name_scope("lrelu"):
-        return (0.5 * (1 + a)) * x + (0.5 * (1 - a)) * tf.abs(x)
+    return (0.5 * (1 + a)) * x + (0.5 * (1 - a)) * tf.abs(x)
 
 
 # http://r2rt.com/implementing-batch-normalization-in-tensorflow.html#making-predictions-with-the-model
@@ -61,12 +59,11 @@ def batchnorm(x, batch_norm_vars, is_training, decay=0.99):
 
 
 def conv(x, id, W, b, bv, is_training, strides=2, decay=0.99):
-    with tf.variable_scope("conv" + str(id)):
-        x = tf.nn.conv2d(x, W,
-                         strides=[1, strides, strides, 1], padding='SAME')
-        x = tf.nn.bias_add(x, b)
-        x = lrelu(x, a=0.2)
-        x = batchnorm(x, bv, is_training, decay=decay)
+    x = tf.nn.conv2d(x, W,
+                     strides=[1, strides, strides, 1], padding='SAME')
+    x = tf.nn.bias_add(x, b)
+    x = lrelu(x, a=0.2)
+    x = batchnorm(x, bv, is_training, decay=decay)
     return x
 
 
