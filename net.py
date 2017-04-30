@@ -131,7 +131,7 @@ num_threads = 4
 [truth_images_batch, edges_images_batch] = tf.train.batch(
         [truth_image, edges_image],
         batch_size=mb_size,
-	capacity=10000,
+	capacity=100,
 	num_threads=mb_size)
 
 print("Batch shape ", truth_images_batch.shape)
