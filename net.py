@@ -17,6 +17,7 @@ parser.add_argument("--num_epochs", type=int, default=15, help="how many epochs 
 parser.add_argument("--mb_size", type=int, default=4, help="minibatch size")
 parser.add_argument("--mb_to_print", type=int, default=100, help="how often to print in an epoch")
 parser.add_argument("--mb_to_save", type=int, default=50, help="how often to save the output")
+parser.add_argument("--l1_weight", type=float, default=0.4, help="l1_weight")
 
 OPTIONS = parser.parse_args()
 
@@ -27,6 +28,7 @@ test_path = os.path.join(input_dir, "test")
 epochs = OPTIONS.num_epochs
 mb_size = OPTIONS.mb_size
 mb_to_save = OPTIONS.mb_to_save
+l1_weight = OPTIONS.l1_weight
 
 IMAGE_DIM = 128
 IMAGE_SIZE = 16384  # 128 x 128
