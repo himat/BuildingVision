@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tensorflow.contrib.layers import batch_norm
-
+ 
 
 def lrelu(x, a=0.2):
     with tf.name_scope("lrelu"):
