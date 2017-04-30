@@ -4,35 +4,23 @@ from tensorflow.contrib.layers import batch_norm
 
 def lrelu(x, a=0.2):
     with tf.name_scope("lrelu"):
-        # adding these together creates the leak part and linear part
-        # then cancels them out by subtracting/adding an absolute value term
-        # leak: a*x/2 - a*abs(x)/2
-        # linear: x/2 + abs(x)/2
-
-        # this block looks like it has 2 inputs on the graph unless we do this
-        x = tf.identity(x)
         return (0.5 * (1 + a)) * x + (0.5 * (1 - a)) * tf.abs(x)
 
 
 def batchnorm_vars(channels):
-    scale = tf.Variable(tf.random_normal([channels], stddev=0.02))
+    scale = tf.Variable(tf.random_normal([channels], mean=1.0, stddev=0.02))
     offset = tf.Variable(tf.zeros([channels]))
     return (offset, scale)
 
 
-def batchnorm(input, batch_norm_vars):
-    with tf.variable_scope("batchnorm"):
-        # this block looks like it has 3 inputs on the graph unless we do this
-        input = tf.identity(input)
-
-        channels = input.get_shape()[3]
-        offset, scale = batch_norm_vars
-        mean, variance = tf.nn.moments(input, axes=[0, 1, 2], keep_dims=False)
-        variance_e = 1e-5
-        normalized = tf.nn.batch_normalization(input, mean,
-                                               variance, offset, scale,
-                                               variance_epsilon=variance_e)
-        return normalized
+def batchnorm(x, batch_norm_vars):
+    offset, scale = batch_norm_vars
+    mean, variance = tf.nn.moments(x, axes=[0, 1, 2], keep_dims=False)
+    variance_e = 1e-8
+    normalized = tf.nn.batch_normalization(x, mean,
+                                           variance, offset, scale,
+                                           variance_epsilon=variance_e)
+    return normalized
 
 
 def conv(x, id, W, b, bv, strides=2, decay=0.99, is_training=True):

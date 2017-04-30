@@ -128,18 +128,17 @@ X_ground_truth = tf.placeholder(
     tf.float32, shape=[mb_size, IMAGE_DIM,
                        IMAGE_DIM, input_nc], name='X_ground_truth')
 X_is_training = tf.placeholder(tf.bool, shape=[], name='X_is_training')
-X_dropout_rate = tf.placeholder(tf.float32, shape=[], name='X_dropout_rate')
 
 # Generate CGAN outputs
-G_sample = generator(X_sketch, X_is_training, X_dropout_rate)
-# X_is_training = tf.Print(X_is_training, [X_is_training], "X is training: ")
+G_sample = generator(X_sketch)
+G_test = generator(X_sketch, is_training=False)
 D_real, D_logit_real = discriminator(X_ground_truth, X_sketch, D_W, D_b, D_bn,
                                      X_is_training)
 D_fake, D_logit_fake = discriminator(G_sample, X_sketch, D_W, D_b, D_bn,
                                      X_is_training)
 
 # Calculate CGAN (classic) losses
-l1_weight = 0.0 #100.0
+l1_weight = 0.4
 D_loss = tf.reduce_mean(-(tf.log(D_real + EPS) + tf.log(1. - D_fake + EPS)))
 G_L1_loss = tf.reduce_mean(tf.abs(X_ground_truth - G_sample))
 G_loss = tf.reduce_mean(-tf.log(D_fake + EPS)) + G_L1_loss*l1_weight
@@ -195,13 +194,11 @@ with tf.Session() as sess:
             _, D_loss_curr = sess.run([D_solver, D_loss],
                                       feed_dict={X_ground_truth: X_truth_batch,
                                                  X_sketch: X_edges_batch,
-                                                 X_is_training: True,
-                                                 X_dropout_rate: 0.5})
+                                                 X_is_training: True})
             _, G_loss_curr = sess.run([G_solver, G_loss],
                                       feed_dict={X_ground_truth: X_truth_batch,
                                                  X_sketch: X_edges_batch,
-                                                 X_is_training: True,
-                                                 X_dropout_rate: 0.5})
+                                                 X_is_training: True})
 
             if mb_idx % mb_to_print == 0:
                 print("Batch ", mb_idx)
@@ -209,18 +206,14 @@ with tf.Session() as sess:
                 print("G loss: {:.4}".format(G_loss_curr))
 
             if mb_idx % 50 == 0:
-                produced_image = sess.run(G_sample,
-                                      feed_dict={X_sketch: X_edges_batch,
-                                                 X_is_training: False,
-                                                 X_dropout_rate: 1.0})
+                produced_image = sess.run(G_test,
+                                      feed_dict={X_sketch: X_edges_batch})
                 plot_save_batch(produced_image[0:4], mb_idx, save_only=True,
                                 prefix=(str(i)+"e"))
 
         if i % epoch_to_print == 0:
-            produced_image = sess.run(G_sample,
-                                  feed_dict={X_sketch: X_edges_batch,
-                                             X_is_training: False,
-                                             X_dropout_rate: 1.0})
+            produced_image = sess.run(G_test,
+                                  feed_dict={X_sketch: X_edges_batch})
 
             plot_save_batch(produced_image[0:4], i, save_only=True)
 
