@@ -219,7 +219,7 @@ with tf.Session() as sess:
                 print("D loss: {:.8}".format(D_loss_curr))
                 print("G loss: {:.8}".format(G_loss_curr))
 
-            if mb_idx % mb_to_save == 0:
+            if (not mb_to_save == 0) and mb_idx % mb_to_save == 0:
                 produced_image = sess.run(G_test,
                                       feed_dict={X_sketch: X_edges_batch})
                 plot_save_batch(produced_image[0:4], mb_idx, save_only=True,
