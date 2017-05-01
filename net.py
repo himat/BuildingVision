@@ -73,6 +73,8 @@ theta_G = generator.weights
 
 # Initialize variable saving
 saver = tf.train.Saver(max_to_keep=1)
+tf.add_to_collection("mb_size", mb_size)
+tf.add_to_collection("l1_weight", l1_weight)
 
 dir = os.path.dirname(os.path.realpath(__file__))
 
