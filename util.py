@@ -11,13 +11,14 @@ def plot_save_single(image, save_only=False, dir=None, name=None):
     if image.shape[2] == 1:
         image = image.squeeze()
     plt.imshow(image, cmap="Greys_r")
+    plt.axis('off')
 
     if save_only:
         if dir == None or name == None:
             raise ValueError("Need a dir/name for saving image to disk")
 
         save_name = os.path.join(dir, name)
-        plt.savefig(save_name, bbox_inces='tight')
+        plt.savefig(save_name, bbox_inches='tight')
         plt.close()
     else:
         plt.show()
