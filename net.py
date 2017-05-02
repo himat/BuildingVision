@@ -199,6 +199,14 @@ if not os.path.exists(ckpt_dir):
 epoch_to_print = 1
 mb_to_print = OPTIONS.mb_to_print
 
+# Demonstrate Model Progression
+set_file_name = os.path.join("data","train","edges","00000001_016.jpg")
+set_edge_imgfile = tf.read_file(set_file_name)
+set_edge_image = tf.image.decode_jpeg(set_edge_imgfile)
+set_edge_image.set_shape([IMAGE_DIM, IMAGE_DIM, sketch_nc])
+set_edge_image = tf.cast(set_edge_image, tf.float32)
+set_edge_image = set_edge_image/255.0
+
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
     
@@ -243,11 +251,16 @@ with tf.Session() as sess:
         if i % epoch_to_print == 0:
             produced_image = sess.run(G_test,
                                   feed_dict={X_sketch: X_edges_batch})
+            produced_set_image = sess.run(G_test,
+                                  feed_dict={X_sketch: set_edge_image})
+
             plot_save_batch(produced_image[0:4], i, save_only=True)
+            plot_save_single(produced_set_image, save_only=True, 
+                                          dir="prog", name="cat%d" % i)
+
             print("D loss: {:.4}".format(D_loss_curr))
             print("G loss: {:.4}".format(G_loss_curr))
-            # print("D_real: {:.4}".format(D_real_curr))
-            # print("D_fake: {:.4}".format(D_fake_curr))
+
             print()
 
         if i % epoch_to_save == 0:
