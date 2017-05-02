@@ -78,7 +78,10 @@ with tf.Session() as sess:
         produced_image_batch = sess.run(G_test,
                               feed_dict={X_sketch: X_edges_batch})
         for i, img in enumerate(produced_image_batch):
-            plot_save_single(img, save_only=True, dir=test_save_dir, name=X_out_batch[i].decode())
+            file_name = X_out_batch[i].decode()
+            file_name = file_name.rpartition(".")[0] + ".png"
+            print(file_name)
+            plot_save_single(img, save_only=True, dir=test_save_dir, name=file_name)
 
     # Stops background threads
     coord.request_stop()
