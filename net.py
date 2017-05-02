@@ -162,7 +162,8 @@ X_is_training = tf.placeholder(tf.bool, shape=[], name='X_is_training')
 # Generate CGAN outputs
 G_sample = generator(X_sketch)
 G_test = generator(X_sketch, is_training=False)
-G_prog_test = generator(X_prog_sketch, is_training=False)
+G_prog_test = tf.reshape(generator(X_prog_sketch, is_training=False),
+    [IMAGE_DIM, IMAGE_DIM, 3])
 tf.add_to_collection("G_test", G_test)
 D_real, D_logit_real = discriminator(X_ground_truth, X_sketch, D_W, D_b, D_bn,
                                      X_is_training)
