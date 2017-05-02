@@ -151,6 +151,8 @@ print("Batch shape ", truth_images_batch.shape)
 
 X_sketch = tf.placeholder(
     tf.float32, shape=[mb_size, IMAGE_DIM, IMAGE_DIM, 1], name='X_sketch')
+X_prog_sketch = tf.placeholder(
+    tf.float32, shape=[1, IMAGE_DIM, IMAGE_DIM, 1], name='X_prog_sketch')
 tf.add_to_collection("X_sketch", X_sketch)
 X_ground_truth = tf.placeholder(
     tf.float32, shape=[mb_size, IMAGE_DIM,
@@ -160,6 +162,7 @@ X_is_training = tf.placeholder(tf.bool, shape=[], name='X_is_training')
 # Generate CGAN outputs
 G_sample = generator(X_sketch)
 G_test = generator(X_sketch, is_training=False)
+G_prog_test = generator(X_prog_sketch, is_training=False)
 tf.add_to_collection("G_test", G_test)
 D_real, D_logit_real = discriminator(X_ground_truth, X_sketch, D_W, D_b, D_bn,
                                      X_is_training)
@@ -200,12 +203,13 @@ epoch_to_print = 1
 mb_to_print = OPTIONS.mb_to_print
 
 # Demonstrate Model Progression
-set_file_name = os.path.join("data","train","edges","00000001_016.jpg")
+set_file_name = os.path.join(edges_files_path, "00000001_016.jpg")
 set_edge_imgfile = tf.read_file(set_file_name)
 set_edge_image = tf.image.decode_jpeg(set_edge_imgfile)
 set_edge_image.set_shape([IMAGE_DIM, IMAGE_DIM, sketch_nc])
 set_edge_image = tf.cast(set_edge_image, tf.float32)
 set_edge_image = set_edge_image/255.0
+set_edge_image = tf.reshape(set_edge_image, [1, IMAGE_DIM, IMAGE_DIM, sketch_nc])
 
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
@@ -213,6 +217,8 @@ with tf.Session() as sess:
     # Starts background threads for image reading
     coord = tf.train.Coordinator()
     threads = tf.train.start_queue_runners(coord=coord)
+
+    set_edge_image = sess.run(set_edge_image)
 
     for i in range(epochs):
 
@@ -251,8 +257,8 @@ with tf.Session() as sess:
         if i % epoch_to_print == 0:
             produced_image = sess.run(G_test,
                                   feed_dict={X_sketch: X_edges_batch})
-            produced_set_image = sess.run(G_test,
-                                  feed_dict={X_sketch: set_edge_image})
+            produced_set_image = sess.run(G_prog_test,
+                                  feed_dict={X_prog_sketch: set_edge_image})
 
             plot_save_batch(produced_image[0:4], i, save_only=True)
             plot_save_single(produced_set_image, save_only=True, 
