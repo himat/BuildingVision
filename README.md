@@ -3,7 +3,7 @@
 An implementation of the GAN detailed in the paper "Image-to-Image Translation with Conditional Adversarial Networks" (https://arxiv.org/abs/1611.07004) by Isola _et al_. Created for the CMU 10-401 Machine Learning course final project Spring 2017.
 
 # Writeup
-[This same writeup can be viewed as a Google Doc here](https://docs.google.com/document/d/1r30SkWMVZ8655zoxz_bFygEWBbmRozVTP_isK9IOrio/edit?usp=sharing).  
+[PDF version](BuildingVision_Writeup.pdf) or read below.  
 
 
 ### Photorealistic Image Generation of Architecture from Sketches using GANs
